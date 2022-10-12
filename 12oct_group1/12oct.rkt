@@ -34,16 +34,16 @@
   )
 
 (define (prime? n)
-  (define (any-div i)
-    (if (> i (quotient n 2))
+  (define (any-div i lim)
+    (if (> i lim)
         #f
         (if (= 0 (remainder n i))
             #t
-            (any-div (+ i 1))
+            (any-div (+ i 1) lim)
             )
         )
     )
-  (not (any-div 2))
+  (and (> n 1) (not (any-div 2 (sqrt n))))
   )
 
 (define (increasing? n)
@@ -58,6 +58,16 @@
       )
   )
 
+(define (rev-dig-iter n)
+  (define (iter i r)
+    (if (< i 10)
+        (+ (* 10 r) i)
+        (iter (quotient i 10) (+ (* r 10) (remainder i 10)))
+        )
+    )
+  (iter n 0)
+  )
+
 (define (toBinary n)
   (cond ((= n 1) 1)
         ((even? n) (* 10 (toBinary (quotient n 2))))
@@ -65,9 +75,29 @@
         )
   )
 
+(define (toBinaryIter n)
+  (define (iter i r)
+    (if (= i 1)
+        (+ (* 10 r) 1)
+        (iter (quotient i 2) (+ (* r 10) (remainder i 2)))
+    )
+  )
+  (quotient (- (rev-dig-iter (iter n 1)) 1) 10)
+  )
+
 (define (toDecimal n)
   (if (= n 1)
       1
       (+ (remainder n 10) (* 2 (toDecimal (quotient n 10))))
       )
+  )
+
+(define (toDecimalIter n)
+  (define (iter i r)
+    (if (= i 1)
+        r
+        (iter (quotient i 10) (+ (* 2 r) (remainder i 10)))
+        )
+    )
+  (iter (rev-dig-iter (+ 1 (* n 10))) 0)
   )
