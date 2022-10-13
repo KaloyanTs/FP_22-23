@@ -46,6 +46,10 @@
   (and (> n 1) (not (any-div 2 (sqrt n))))
   )
 
+(define (bad-prime? n)
+  (= (+ n 1) (div-sum n))
+  )
+
 (define (increasing? n)
   (if (< n 10)
       #t
