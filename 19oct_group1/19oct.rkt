@@ -55,15 +55,21 @@
   )
 
 ;todo
-(define derive-n
-  (lambda (n)
-    (repeat n derive)
-    )
+;(define derive-n
+;  (lambda (n)
+;    (repeat n derive)
+;    )
+;  )
+
+(define (derive-n n f)
+  (if (= n 1)
+      (derive f)
+      (derive (derive-n (- n 1) f)
+              )
+      )
   )
 
-(define secDer (derive-n 2))
-
-(define two (secDer (lambda (x) (+ (* x x) (* 3 x)))))
+(define two (derive-n 2 (lambda (x) (* x x))))
 
 (define 2* (derive (lambda (x) (* x x))))
 
@@ -208,16 +214,19 @@
                 )
   )
 
-;todo
 (define (prime? n)
-  (filter-accum (lambda (i) (not (zero? (remainder n i))))
-                (lambda (x y) (and x y))
+  (filter-accum (lambda (i)  (zero? (remainder n i)))
+                (lambda (x y) #f)
                 #t
                 2
                 (sqrt n)
                 (lambda (i) i)
                 (lambda (i) (+ i 1))
                 )
+  )
+
+(define (prime-all? n)
+  (all? (lambda (x) (not (zero? (remainder n x)))) 2 (sqrt n))
   )
 
 (define (repeat-accum n f)
