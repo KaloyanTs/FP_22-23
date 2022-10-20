@@ -46,7 +46,7 @@
 
 (define plus4 (repeat 4 (lambda (x) (+ x 1))))
 
-(define dx 0.00000001)
+(define dx 0.000001)
 
 (define derive
   (lambda (f)
@@ -55,7 +55,7 @@
   )
 
 ;todo
-;(define derive-n
+;(define (derive-n n f)
 ;  (lambda (n)
 ;    (repeat n derive)
 ;    )
