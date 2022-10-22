@@ -54,12 +54,9 @@
     )
   )
 
-;todo
-;(define (derive-n n f)
-;  (lambda (n)
-;    (repeat n derive)
-;    )
-;  )
+(define (derive-n2 n f)
+    ((repeat n derive) f)
+  )
 
 (define (derive-n n f)
   (if (= n 1)
