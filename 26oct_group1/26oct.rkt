@@ -25,3 +25,10 @@
              (or (p? (car lst) (all? p? (cdr lst))))
         )
   )
+
+(define (zip l1 l2)
+  (if (or (null? l1) (null? l2))
+      '()
+      (cons (cons (car l1) (car l2)) (zip (cdr l1) (cdr l2)))
+      )
+  )
