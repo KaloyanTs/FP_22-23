@@ -32,3 +32,10 @@
       (cons (cons (car l1) (car l2)) (zip (cdr l1) (cdr l2)))
       )
   )
+
+(define (zipWith op l1 l2)
+  (if (or (null? l1) (null? l2))
+      '()
+      (cons (op (car l1) (car l2)) (zipWith op (cdr l1) (cdr l2)))
+      )
+  )
