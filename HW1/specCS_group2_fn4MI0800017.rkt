@@ -62,21 +62,80 @@
       )
     )
   (accumulate-i cmp-pairs
-              (cons a (++ a))
-              a
-              (- b 1)
-              (lambda (i) (accumulate-i cmp-pairs
-                                      (cons i (++ i))
-                                      (++ i)
-                                      b
-                                      (lambda (j) (cons i j))
-                                      ++
-                                      )
+                (cons a (++ a))
+                a
+                (- b 1)
+                (lambda (i) (accumulate-i cmp-pairs
+                                          (cons i (++ i))
+                                          (++ i)
+                                          b
+                                          (lambda (j) (cons i j))
+                                          ++
+                                          )
+                  )
+                ++
                 )
-              ++
-              )
+  )
+
+(define (integrate f a b dx)
+  (* dx (accumulate-i +
+                      0
+                      a
+                      b
+                      f
+                      (lambda (i) (+ i dx))
+                      )
+     )
   )
 
 (define (integrate2 f a b c d dx dy)
+  (* dy (accumulate-i +
+                      0
+                      c
+                      d
+                      (lambda (y) (integrate (lambda (x) (f x y))
+                                             a
+                                             b
+                                             dx
+                                             )
+                        )
+                      (lambda (y) (+ y dy))
+                      )
+     )
+  )
+
+(define (n-rooks board n)
+  (and (accumulate-i (lambda (x y) (and x y))
+                     #t
+                     0
+                     (- n 1)
+                     (lambda (i) (accumulate-i (lambda (x y) (or x y))
+                                               #f
+                                               0
+                                               (- n 1)
+                                               (lambda (j) (board j i n))
+                                               ++
+                                               )
+                       )
+                     ++
+                     )
+       (accumulate-i (lambda (x y) (and x y))
+                     #t
+                     0
+                     (- n 1)
+                     (lambda (i) (accumulate-i (lambda (x y) (or x y))
+                                               #f
+                                               0
+                                               (- n 1)
+                                               (lambda (j) (board i j n))
+                                               ++
+                                               )
+                       )
+                     ++
+                     )
+       )
+  )
+
+(define (n-rooks2 board n)
   #t
   )
