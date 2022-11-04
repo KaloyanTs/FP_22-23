@@ -154,11 +154,33 @@
     (if (null? l)
         res
         (iter (cdr l) (insert-val f (car l) res))
+        )
     )
-  )
   (iter lst '())
   )
 
 (define (zipWith* f . lst)
-  
+  (cond ((or (zero? (length lst)) (zero? (foldr
+                                          min
+                                          1
+                                          (map length lst)
+                                          )
+                                         )
+             )
+         '()
+         )
+        (cons (apply f (foldr (lambda (x y) (cons (car x) y))
+                              '()
+                              lst
+                              )
+                     )
+              (apply zipWith* (cons f
+                                    (foldr (lambda (x y) (cons (cdr x) y))
+                                           '()
+                                           lst
+                                           )
+                                    )
+                     )
+              )
+        )
   )
