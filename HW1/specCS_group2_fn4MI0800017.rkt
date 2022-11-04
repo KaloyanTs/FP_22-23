@@ -136,6 +136,22 @@
        )
   )
 
+(define (foldr op nv l)
+  #t;todo
+  )
+
 (define (n-rooks2 board n)
-  #t
+  (accumulate (lambda (x y) (and x y))
+              #t
+              0
+              (- n 1)
+              (lambda (i) (accumulate (lambda (x y) (or x y))
+                                      #f
+                                      0
+                                      (- n 1)
+
+                                      ++)
+                )
+              ++
+              )
   )
