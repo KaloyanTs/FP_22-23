@@ -136,12 +136,33 @@
        )
   )
 
+(define (take l i)
+  (car (accumulate-i (lambda (x y) (cdr x))
+                     l
+                     1
+                     (- i 1)
+                     id
+                     ++
+                     )
+       )
+  )
+
+(define (acc-foldr op nv l)
+  (accumulate op
+              nv
+              1
+              (length l)
+              (lambda (i) (take l i))
+              ++
+              )
+  )
+
 (define (n-rooks2 board n)
   (and (accumulate (lambda (x y) (and x y))
                    #t
                    0
                    (- n 1)
-                   (lambda (i) (foldr (lambda (x y) (or (= (car x) i) y))
+                   (lambda (i) (acc-foldr (lambda (x y) (or (= (car x) i) y))
                                       #f
                                       board
                                       )
@@ -152,7 +173,7 @@
                    #t
                    0
                    (- n 1)
-                   (lambda (i) (foldr (lambda (x y) (or (= (cdr x) i) y))
+                   (lambda (i) (acc-foldr (lambda (x y) (or (= (cdr x) i) y))
                                       #f
                                       board
                                       )
