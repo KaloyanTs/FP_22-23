@@ -1,4 +1,4 @@
-#lang racket
+#lang r5rs
 
 (define (accumulate op nv a b term next)
   (if (> a b) nv
