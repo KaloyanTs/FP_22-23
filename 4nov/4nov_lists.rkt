@@ -200,3 +200,30 @@
                   )
            )
   )
+
+(define (is-em? lst bin f)
+  (and (all? (lambda (x) (member? (f x) lst)) lst)
+       (all? (lambda (x) (all? (lambda (y) (eq? (f (bin x y))
+                                                (bin (f x) (f y))
+                                                )
+                                 )
+                               lst
+                               )
+               )
+             lst
+             )
+       )
+  )
+
+(define (max-metric ml nl)
+  (foldr (lambda (x y) (if (> (foldr + 0 (map x nl))
+                              (foldr + 0 (map y nl))
+                              )
+                           x
+                           y
+                           )
+           )
+         (car ml)
+         (cdr ml)
+         )
+  )
