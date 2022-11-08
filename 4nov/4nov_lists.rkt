@@ -154,16 +154,15 @@
   )
 
 (define (remove el lst)
-  (reverse (cdr (foldl (lambda (x y) (if (and (not (car x)) (eq? el y))
-                                         (cons #t (cdr x))
-                                         (cons (car x) (cons y (cdr x)))
-                                         )
-                         )
-                       (list #f)
-                       lst
-                       )
+  (cdr (foldr (lambda (y x) (if (and (not (car x)) (eq? el y))
+                                (cons #t (cdr x))
+                                (cons (car x) (cons y (cdr x)))
+                                )
                 )
-           )
+              (list #f)
+              lst
+              )
+       )
   )
 
 (define (explode-digits n)
