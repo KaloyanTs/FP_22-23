@@ -15,15 +15,14 @@
   )
 
 (define (all? p? lst)
-  (or (null? lst)
-      (and (p? (car lst)) (all? p? (cdr lst)))
-      )
+  (null? (filter (lambda (x) (not (p? x)))
+                 lst
+                 )
+         )
   )
 
 (define (any? p? lst)
-  (and (not (null? lst))
-       (or (p? (car lst) (all? p? (cdr lst))))
-       )
+  (not (null? (filter p? lst)))
   )
 
 (define (zip l1 l2)
@@ -160,27 +159,19 @@
   )
 
 (define (zipWith* f . lst)
-  (cond ((or (zero? (length lst)) (zero? (foldr
-                                          min
-                                          1
-                                          (map length lst)
-                                          )
+  (if (or (null? lst)
+          (any? null? lst)
+          )
+      '()
+      (cons (apply f (map car
+                          lst
+                          )
+                   )
+            (apply zipWith* (cons f (map cdr
+                                         lst
                                          )
-             )
-         '()
-         )
-        (cons (apply f (foldr (lambda (x y) (cons (car x) y))
-                              '()
-                              lst
-                              )
-                     )
-              (apply zipWith* (cons f
-                                    (foldr (lambda (x y) (cons (cdr x) y))
-                                           '()
-                                           lst
-                                           )
-                                    )
-                     )
-              )
-        )
+                                  )
+                   )
+            )
+      )
   )
