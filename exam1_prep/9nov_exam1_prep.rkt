@@ -127,3 +127,76 @@
           )
   )
 
+(define (dig-count n)
+  (if (< n 10) 1
+      (+ 1 (dig-count (quotient n 10)))
+      )
+  )
+
+(define (middle-digit n)
+  (define d (quotient (dig-count n) 2))
+  (define (iter st nn last)
+    (if (> st d)
+        last
+        (iter (+ st 1)
+              (quotient nn 10)
+              (remainder nn 10)
+              )
+        )
+    )
+  (if (zero? (remainder d 2))
+      -1
+      (iter 0 n 0)
+      )
+  )
+
+(define (myfoldl op nv l)
+  (if (null? l) nv
+      (myfoldl op (op nv (car l)) (cdr l))
+      )
+  )
+
+(define (rev l)
+  (myfoldl (lambda (x y) (cons y x))
+           '()
+           l
+           )
+  )
+
+(define (helper l res acc el)
+  (cond ((null? l) (cons acc
+                         (cons el
+                               res
+                               )
+                         )
+                   )
+        ((= (car l) el) (helper (cdr l)
+                                res
+                                (+ acc 1)
+                                el
+                                )
+                        )
+        (else (helper (cdr l)
+                      (cons el
+                            (cons acc
+                                  res
+                                  )
+                            )
+                      1
+                      (car l)
+                      )
+              )
+        )
+  )
+
+(define (next-look-and-say l)
+  (if (null? l)
+      '()
+      (rev (helper (cdr l)
+                   '()
+                   1
+                   (car l)
+                   )
+           )
+      )
+  )
