@@ -212,3 +212,15 @@
   (define d(first-eq (+ c 1) b))
   (and (<= c b) (<= d b))
   )
+
+(define (from-to a b)
+  (if (> a b) '()
+      (cons a (from-to (+ a 1) b))
+  )
+  )
+
+(define (mT f g a b)
+  (>= (length (filter (lambda (i) (equal? (f i) (g i))) (from-to a b)))
+      2
+      )
+  )

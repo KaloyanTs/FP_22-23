@@ -85,6 +85,22 @@
          )
   )
 
+(define (partition2 p? lst)
+  (list (filter p? lst)
+        (filter (lambda (x) (not (p? x))) lst)
+        )
+  )
+
+(define (flip f)
+  (lambda (x y) (f y x))
+  )
+
+(define snoc (flip cons))
+
+(define (reverse2 l)
+  (foldl snoc '() l)
+  )
+
 (define (isPrime? n)
   (and (> n 1)
        (accumulate (lambda (x y) (and x y))
@@ -168,14 +184,14 @@
 (define (explode-digits n)
   (if (zero? n)
       (list 0)
-      (reverse (accumulate cons
-                           '()
-                           (- 0 n)
-                           -1
-                           (lambda (i) (remainder (- 0 i) 10))
-                           (lambda (i) (quotient i 10))
-                           )
-               )
+      (reverse2 (accumulate cons
+                            '()
+                            (- 0 n)
+                            -1
+                            (lambda (i) (remainder (- 0 i) 10))
+                            (lambda (i) (quotient i 10))
+                            )
+                )
       )
   )
 
@@ -225,4 +241,37 @@
          (car ml)
          (cdr ml)
          )
+  )
+
+(define (any p? l)
+  (foldr (lambda (x y) (or (p? x)
+                           y
+                           )
+           )
+         #f
+         l
+         )
+  )
+
+(define (uniques l)
+  (cond ((null? l) l)
+        ((any? (lambda (x) (equal? x
+                                   (car l)
+                                   )
+                 )
+               (cdr l)
+               )
+         (uniques (cdr l))
+         )
+        (else (cons (car l)
+                    (uniques (cdr l))
+                    )
+              )
+        )
+  )
+
+(define (group-by f lst)
+   (map (lambda (x) (filter (lambda (y) (equal? x (f y))) lst))
+        (uniques (map f lst))
+        )
   )
