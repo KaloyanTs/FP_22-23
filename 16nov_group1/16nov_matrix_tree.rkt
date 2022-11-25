@@ -324,6 +324,74 @@
   (helper '() t)
   )
 
-(define (avg t)
-  #t
+(define (calc-tree f t)
+  (cond ((is-leaf? t) (root-tree t))
+        (else (f (root-tree t)
+                 (if (empty-tree? (left-tree t))
+                     (root-tree t)
+                     (calc-tree f (left-tree t))
+                     )
+                 (if (empty-tree? (right-tree t))
+                     (root-tree t)
+                     (calc-tree f (right-tree t))
+                     )
+                 )
+              )
+        )
   )
+
+(define (avg t)
+  (define (helper tree)
+    (cond ((empty-tree? tree) (make-tree tree tree tree))
+          ((is-leaf? tree) (make-tree tree
+                                   (root-tree tree)
+                                   (root-tree tree)
+                                   )
+                        )
+          (else
+           (let* ((l (helper (left-tree tree)))
+                  (r (helper (right-tree tree)))
+                  (m (cond ((null? (left-tree l))
+                            (left-tree r))
+                           ((null? (left-tree r))
+                            (left-tree l))
+                           (else (min
+                                  (left-tree l)
+                                  (left-tree r)
+                                  )
+                                 )
+                           )
+                     )
+                  (M (cond ((null? (right-tree l))
+                                  (right-tree r))
+                           ((null? (right-tree r))
+                                  (right-tree l))
+                           (else (max
+                                  (right-tree l)
+                                  (right-tree r)
+                                  )
+                                 )
+                           )
+                     )
+                  )
+             (make-tree (make-tree
+                         (/
+                          (+
+                           m
+                           M
+                           )
+                          2
+                          )
+                         (root-tree l)
+                         (root-tree r)
+                         )
+                        m
+                        M
+                        )
+             )
+           )
+          )
+    )4
+  (root-tree (helper t))
+  )
+
