@@ -3,25 +3,30 @@ import System.Win32 (COORD (x))
 import Prelude hiding (abs, all, length, maximum, minimum, replicate, reverse, zip, zipWith)
 
 minimum [] = error "no elements"
-minimum l@(x : xs) = foldr (\x y -> min x y) x l
+minimum l@(x : xs) = foldr min x l
 
 maximum [] = error "no elements"
 maximum [x] = x
-maximum l@(x : xs) = foldr (\x y -> max x y) x l
+maximum l@(x : xs) = foldr max x l
 
 length [] = 0
 length l@(x : xs) = foldr (\x y -> 1 + y) 0 l
 
 all _ [] = True
-all p l@(x : xs) = foldr (&&) True (map p l)
+all p l@(x : xs) = and (map p l)
 
 any _ [] = False
-any p l@(x : xs) = foldr (||) False (map p l)
+any p l@(x : xs) = or (map p l)
 
 append l1 l2 = foldr (:) l2 l1
 
-replicate :: [b] -> [b]
-replicate = foldr (\x y -> x : x : y) []
+cloneEverything :: [b] -> [b]
+cloneEverything = foldr (\x y -> x : x : y) []
+
+replicate 0 _ = []
+replicate n x
+  | n < 0 = error "negative count not allowed"
+  | otherwise = x : replicate (n - 1) x
 
 countDivisors n = length [x | x <- [1 .. (n -1)], n `mod` x == 0]
 

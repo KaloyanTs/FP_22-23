@@ -14,8 +14,6 @@ Variable not in scope: d
 
 import Prelude hiding (abs, filter, foldl, map, reverse, takeWhile, zip, zipWith)
 
--- import System.Win32 (COORD(x))
-
 map2 :: (t -> a) -> [t] -> [a]
 map2 _ [] = []
 map2 f (x : xs) = f x : map f xs
@@ -73,6 +71,16 @@ prime x
   | x < 2 = False
   | otherwise = not (null (filter (\y -> x `mod` y == 0) [1 .. (sqrt x)]))
 
-quicksort []=[]
-quicksort [x]= [x]
-quicksort (x:xs)= quicksort (filter (<x) xs) ++ [x] ++ quicksort (filter (>x) xs)
+quicksort [] = []
+quicksort [x] = [x]
+quicksort (x : xs) = quicksort (filter (< x) xs) ++ [x] ++ quicksort (filter (> x) xs)
+
+factorize 1 = [1]
+factorize x
+  | x < 1 = error "cannot be factorized"
+  | otherwise = helper 2 x
+  where
+    helper _ 1 = []
+    helper from y
+      | y `mod` from == 0 = from : helper from (y `div` from)
+      | otherwise = helper (from + 1) y
