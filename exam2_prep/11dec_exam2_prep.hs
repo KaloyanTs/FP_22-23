@@ -3,7 +3,7 @@
 
 {-# HLINT ignore "Use second" #-}
 
-import GHC.Float
+import GHC.Float ( int2Double ) -- todo avoid in future
 
 isNPerm n f = inRange values && uniques values
   where
