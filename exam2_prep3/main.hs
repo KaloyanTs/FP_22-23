@@ -129,3 +129,13 @@ bestSubstitute c cs = foldr (\x y -> if snd (head (snd x))>snd (head (snd y)) th
 groupSubstitutes :: [Cure] -> [[Cure]]
 groupSubstitutes [] = []
 groupSubstitutes l@(x:xs) = filter (isSubstitute x) l: groupSubstitutes (filter (not.isSubstitute x) l)
+
+stern = concatMap removeLast res
+    where
+        nextTerm [x] = [x]
+        nextTerm (x:y:ys) = x : (x+y) : nextTerm (y:ys)
+        nextTerm l = error "something went wrong..."
+        removeLast [x] = []
+        removeLast (x:xs) = x : removeLast xs
+        removeLast [] = error "something went wrong..."
+        res = [1,1] : map (\x->nextTerm (res!!x)) [0..]
