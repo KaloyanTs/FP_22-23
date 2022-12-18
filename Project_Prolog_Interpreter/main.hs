@@ -4,7 +4,8 @@ import Data.Char
 isIdentifier :: String -> Bool
 isIdentifier [] = False
 isIdentifier (x:xs) = isAsciiLower x &&
-                all (\y-> isLetter y || isDigit y) xs
+                all (\y-> isLetter y || isDigit y || y == '_' ) xs
+--todo should '_' be a valid part of identifier?
 
 isVariable :: String -> Bool
 isVariable [] = False
