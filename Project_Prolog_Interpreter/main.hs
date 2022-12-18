@@ -18,7 +18,7 @@ splitBy :: Char -> String -> [String]
 splitBy _ [] = []
 splitBy s l = first :
                 splitBy s (if null remain then remain
-                            else tail remain)
+                            else dropWhile (==' ') (tail remain))
     where
         first = firstValid l 0
         firstValid [] _ = []
@@ -29,7 +29,7 @@ splitBy s l = first :
             | otherwise = x : firstValid xs c
         opening = length (filter (== '(') first)
         closing = length (filter (== ')') first)
-        remain = dropWhile (== ' ') $ drop (length first) l
+        remain = drop (length first) l
 
 isAtom :: String -> Bool
 isAtom l = isValidPar && isIdentifier beforePar && all isTerm (splitBy ',' insidePar)
