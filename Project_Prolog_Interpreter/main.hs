@@ -29,7 +29,7 @@ splitBy s l = first :
             | otherwise = x : firstValid xs c
         opening = length (filter (== '(') first)
         closing = length (filter (== ')') first)
-        remain = drop (length first) l
+        remain = dropWhile (== ' ') $ drop (length first) l
 
 isAtom :: String -> Bool
 isAtom l = isValidPar && isIdentifier beforePar && all isTerm (splitBy ',' insidePar)
