@@ -18,7 +18,7 @@ splitBy :: Char -> String -> [String]
 splitBy _ [] = []
 splitBy s l = first :
                 splitBy s (if null remain then remain
-                            else tail remain) 
+                            else tail remain)
     where
         first = firstValid l 0
         firstValid [] _ = []
@@ -54,8 +54,8 @@ isRule :: String -> Bool
 isRule l = (not.null) l &&
            last l == '.' &&
            hasSpecial &&
-           isAtom beforeSpecial && 
-           all isAtom 
+           isAtom beforeSpecial &&
+           all isAtom
            (splitBy ',' afterSpecial)
     where
         noDot = init l
@@ -75,9 +75,19 @@ isComment l = (not.null) l && head (dropWhile (==' ') l) == '%'
 extractData :: String -> [String]
 extractData l = removeEmpty (splitBy '\n' l)
 
+consult :: String -> (Bool , [String])
+consult contents = (truth,if truth then [] else filter (\x-> not (isFact x || isRule x || isComment x)) (extractData contents))
+    where
+        truth = all (\x-> isFact x || isRule x || isComment x) (extractData contents)
+
 --todo should whitespaces be allowed after ','
 main = do
-        putStr "Which file from the \"prolog/\" directory to consult?\n> "
+        putStr "Which file to consult from the directory \"prolog/\"?\n> "
         file <- getLine
         contents <- readFile ("prolog/" ++ file)
-        print $ all (\x-> isFact x || isRule x || isComment x) (extractData contents)
+        print $ consult contents
+        --todo use where ?
+        -- print $ if fst truth then fst truth else fst truth ++ '\n' ++ snd truth
+        --     where
+        --         truth = consult contents
+        main
