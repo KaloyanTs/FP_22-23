@@ -77,5 +77,7 @@ extractData l = removeEmpty (splitBy '\n' l)
 
 --todo should whitespaces be allowed after ','
 main = do
-        contents <- readFile "prolog/test.pl"
+        putStr "Which file from the \"prolog/\" directory to consult?\n> "
+        file <- getLine
+        contents <- readFile ("prolog/" ++ file)
         print $ all (\x-> isFact x || isRule x || isComment x) (extractData contents)
