@@ -46,31 +46,36 @@ isTerm l@(x:xs) = isConstant l ||
                   isAtom l
 
 isFact :: String -> Bool
-isFact =isAtom
+isFact l = (not.null) l &&
+           last l == '.' &&
+           (isAtom.init) l
 
 isRule :: String -> Bool
-isRule l = hasSpecial &&
+isRule l = (not.null) l &&
+           last l == '.' &&
+           hasSpecial &&
            isAtom beforeSpecial && 
            all isAtom 
            (splitBy ',' afterSpecial)
     where
-        hasSpecial = " :- " `isSubstring` l
+        noDot = init l
+        hasSpecial = " :- " `isSubstring` noDot
         isSubstring [] _ = True
         isSubstring _ [] = False
         isSubstring (x:xs) (y:ys) = (x==y && isSubstring xs ys) || isSubstring (x:xs) ys
-        beforeSpecial = takeWhile (/= ' ') l
-        afterSpecial = drop 4 (dropWhile (/= ' ') l)
+        beforeSpecial = takeWhile (/= ' ') noDot
+        afterSpecial = drop 4 (dropWhile (/= ' ') noDot)
 
+removeEmpty :: [String] -> [String]
+removeEmpty = filter (not.null)
 
+isComment :: String -> Bool
+isComment l = (not.null) l && head (dropWhile (==' ') l) == '%'
+
+extractData :: String -> [String]
+extractData l = removeEmpty (splitBy '\n' l)
+
+--todo should whitespaces be allowed after ','
 main = do
-        let list = []
-        handle <- openFile "prolog/test.pl" ReadMode
-        contents <- hGetContents handle
-        hClose handle
-        let singlewords = words contents
-            list = f singlewords
-        print list
-        --todo find out what this does
-
-f :: [String] -> [String]
-f = map read
+        contents <- readFile "prolog/test.pl"
+        print $ all (\x-> isFact x || isRule x || isComment x) (extractData contents)
