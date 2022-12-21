@@ -81,14 +81,14 @@ consult contents = (truth,if truth then [] else filter (\x-> not (isFact x || is
     where
         truth = all (\x-> isFact x || isRule x || isComment x) (extractData contents)
 
+--todo add my data types
+
+
 --todo should whitespaces be allowed after ','
 main = do
         putStr "Which file to consult from the directory \"prolog/\"?\n> "
         file <- getLine
         contents <- readFile ("prolog/" ++ file)
-        print $ consult contents
-        --todo use where ?
-        -- print $ if fst truth then fst truth else fst truth ++ '\n' ++ snd truth
-        --     where
-        --         truth = consult contents
+        let truth = consult contents
+        print $ if fst truth then "True" else "False" ++ "\n" ++ unlines (snd truth)
         main
