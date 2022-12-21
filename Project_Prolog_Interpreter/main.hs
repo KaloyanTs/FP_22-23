@@ -81,14 +81,27 @@ consult contents = (truth,if truth then [] else filter (\x-> not (isFact x || is
     where
         truth = all (\x-> isFact x || isRule x || isComment x) (extractData contents)
 
+workWithFile :: String -> IO Bool
+workWithFile path = do
+        contents <- readFile ("prolog/" ++ path)
+        let truth = consult contents
+        print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
+        return True
+
+loop = do
+        putStr "Which file to consult from the directory \"prolog/\"?\n> "
+        file <- getLine
+        workWithFile file
+        putStrLn "Consult another file? ( y | [n] )"
+        response <- getLine
+        if (not . null) response && head response == 'y' then loop else return ()
+
 --todo add my data types
 
 
 --todo should whitespaces be allowed after ','
 main = do
-        putStr "Which file to consult from the directory \"prolog/\"?\n> "
-        file <- getLine
-        contents <- readFile ("prolog/" ++ file)
-        let truth = consult contents
-        print $ if fst truth then "True" else "False" ++ "\n" ++ unlines (snd truth)
-        main
+    loop
+    putStrLn "Closing..."
+    response <- getLine
+    return ()   
