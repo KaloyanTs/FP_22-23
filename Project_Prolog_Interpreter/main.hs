@@ -81,13 +81,22 @@ consult contents = (truth,if truth then [] else filter (\x-> not (isFact x || is
     where
         truth = all (\x-> isFact x || isRule x || isComment x) (extractData contents)
 
+removeWhiteSpacesAfterComma :: String -> String
+removeWhiteSpacesAfterComma [] = []
+removeWhiteSpacesAfterComma (x:xs)
+    | x==',' = x : removeWhiteSpacesAfterComma (dropWhile (== ' ') xs)
+    | otherwise = x : removeWhiteSpacesAfterComma xs
+--todo not working
+
 workWithFile :: String -> IO ()
 workWithFile path = do
         contents <- readFile ("prolog/" ++ path)
         let truth = consult contents
         print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
         let realCode = [ x | x<-lines contents, (not . isComment) x]
-        fact<-getLine
+        factInput<-getLine
+        let fact = removeWhiteSpacesAfterComma factInput
+                
         --todo repair main functionality
         --todo remove whitespaces after ',' in code
         --todo raise exception on not query nor fact nor ... (bad input)
