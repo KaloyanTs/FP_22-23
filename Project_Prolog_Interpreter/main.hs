@@ -86,19 +86,16 @@ removeWhiteSpacesAfterComma [] = []
 removeWhiteSpacesAfterComma (x:xs)
     | x==',' = x : removeWhiteSpacesAfterComma (dropWhile (== ' ') xs)
     | otherwise = x : removeWhiteSpacesAfterComma xs
---todo not working
 
 workWithFile :: String -> IO ()
 workWithFile path = do
         contents <- readFile ("prolog/" ++ path)
         let truth = consult contents
         print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
-        let realCode = [ x | x<-lines contents, (not . isComment) x]
+        let realCode = [ removeWhiteSpacesAfterComma x | x<-lines contents, (not . isComment) x, (not . null) x]
         factInput<-getLine
         let fact = removeWhiteSpacesAfterComma factInput
-                
         --todo repair main functionality
-        --todo remove whitespaces after ',' in code
         --todo raise exception on not query nor fact nor ... (bad input)
         print $ if fact `elem` realCode then "true." else "false."
         return ()
