@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use when" #-}
 import System.IO
 import Data.Char
 
@@ -87,18 +89,30 @@ removeWhiteSpacesAfterComma (x:xs)
     | x==',' = x : removeWhiteSpacesAfterComma (dropWhile (== ' ') xs)
     | otherwise = x : removeWhiteSpacesAfterComma xs
 
+check :: String -> [String] -> IO()
+check input database = do
+    if input == "quit" then return () else
+            if not (isFact input) && not (isRule input)
+                    then do
+                                print "You are allowed to input only facts and queries!"
+                                userInteract database
+                    else do
+                                print $ if input `elem` database then "true." else "false."
+                                userInteract database
+
+userInteract :: [String] -> IO()
+userInteract database = do
+        factInput <- getLine
+        let fact = removeWhiteSpacesAfterComma factInput
+        check fact database
+
 workWithFile :: String -> IO ()
 workWithFile path = do
         contents <- readFile ("prolog/" ++ path)
         let truth = consult contents
         print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
         let realCode = [ removeWhiteSpacesAfterComma x | x<-lines contents, (not . isComment) x, (not . null) x]
-        factInput<-getLine
-        let fact = removeWhiteSpacesAfterComma factInput
-        --todo repair main functionality
-        --todo raise exception on not query nor fact nor ... (bad input)
-        print $ if fact `elem` realCode then "true." else "false."
-        return ()
+        userInteract realCode
 
 loop :: IO ()
 loop = do
@@ -109,13 +123,11 @@ loop = do
         response <- getLine
         if (not . null) response && head response == 'y' then loop else return ()
 
---todo add my data types
+--data Rule = Atom 
 
-
---todo should whitespaces be allowed after ','
 main :: IO ()
 main = do
     loop
     putStrLn "Closing..."
     response <- getLine
-    return ()   
+    return ()
