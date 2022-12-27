@@ -12,6 +12,7 @@ data LetterNumberSequence
 
 data Identifier = MakeId Char LetterNumberSequence
 
+--todo assert first letter is capital
 data Variable = MakeVar Char LetterNumberSequence
 
 type Constant = Identifier
@@ -229,6 +230,25 @@ areIdenticalVariables (MakeVar c1 lns1) (MakeVar c2 lns2) =
   c1 == c2
     && areIdenticalLNS lns1 lns2
 
+areIdenticalAtoms :: Atom -> Atom -> Bool
+areIdenticalAtoms (MakeAtom id1 ts1) (MakeAtom id2 ts2) = areIdenticalIds id1 id2 && areIdenticalTS ts1 ts2
+
+areIdenticalFacts :: Fact -> Fact -> Bool
+areIdenticalFacts = areIdenticalAtoms
+
+areIdenticalTerms :: Term -> Term -> Bool
+areIdenticalTerms (MakeTermC c1) (MakeTermC c2) = areIdenticalConstants c1 c2
+areIdenticalTerms (MakeTermV c1) (MakeTermV c2) = areIdenticalVariables c1 c2
+areIdenticalTerms (MakeTermAtom c1) (MakeTermAtom c2) = areIdenticalAtoms c1 c2
+areIdenticalTerms _ _ = False
+
+areIdenticalTS :: TermSequence -> TermSequence -> Bool
+areIdenticalTS (EndTS t1) (EndTS t2) = areIdenticalTerms t1 t2
+areIdenticalTS (MakeTS t1 ts1) (MakeTS t2 ts2) =
+  areIdenticalTerms t1 t2
+    && areIdenticalTS ts1 ts2
+areIdenticalTS _ _ = False
+
 lengthTS :: TermSequence -> Int
 lengthTS (EndTS _) = 1
 lengthTS (MakeTS _ ts) = 1 + lengthTS ts
@@ -238,10 +258,29 @@ insertInStack (EndTS t1) (EndTS t2) stack = (t1, t2) : stack
 insertInStack (MakeTS t1 ts1) (MakeTS t2 ts2) stack = insertInStack ts1 ts2 $ (t1, t2) : stack
 insertInStack _ _ _ = error "TermSequnces must be of equal length"
 
+termContainsVariable :: Term -> Bool
+termContainsVariable (MakeTermC _) = False
+termContainsVariable (MakeTermV _) = True
+termContainsVariable (MakeTermAtom a) = atomContainsVariable a
+
+atomContainsVariable :: Atom -> Bool
+atomContainsVariable (MakeAtom _ ts) = tsContainsVariable ts
+
+tsContainsVariable :: TermSequence -> Bool
+tsContainsVariable (EndTS t) = termContainsVariable t
+tsContainsVariable (MakeTS t ts) =
+  termContainsVariable t
+    || tsContainsVariable ts
+
 toBeUnified :: (Term, Term) -> [(Variable, Identifier)]
 --                      stack  result
-toBeUnified pair = iter [pair] []
+toBeUnified pair@(l, r)
+  | termContainsVariable l || termContainsVariable r = iter [pair] []
+  | areIdenticalTerms l r = [(MakeVar 'D' EmptyLNS, MakeId 'd' EmptyLNS)]
+  | otherwise = []
   where
+    --todo find more meaningfull return above
+
     iter :: [(Term, Term)] -> [(Variable, Identifier)] -> [(Variable, Identifier)]
     iter [] res = res
     iter ((MakeTermC lhs, MakeTermC rhs) : pairs) res
@@ -380,7 +419,14 @@ allIdentifiers (r, f) = concatMap getRuleIds r ++ concatMap getFactIds f
 
 --todo experiment using datatypes above
 
-check :: String -> [String] -> IO ()
+interpreteInput :: String -> Database -> Bool
+interpreteInput input (r, f)
+  | isFact input = any (areIdenticalFacts (toFact input)) f
+  | isRule input = error "not done yet"
+  --todo must be finished; now telling only true or false
+  | otherwise = not (null (toBeUnified (toEquality input)))
+
+check :: String -> Database -> IO ()
 check input database = do
   if input == "quit"
     then return ()
@@ -390,10 +436,10 @@ check input database = do
           print "You are allowed to input only facts, queries and equalities!"
           userInteract database
         else do
-          print $ if input `elem` database then "true." else "false."
+          print $ if interpreteInput input database then "true." else "false."
           userInteract database
 
-userInteract :: [String] -> IO ()
+userInteract :: Database -> IO ()
 userInteract database = do
   factInput <- getLine
   let fact = removeWhiteSpacesAfterComma factInput
@@ -405,7 +451,8 @@ workWithFile path = do
   let truth = consult contents
   print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
   let realCode = [removeWhiteSpacesAfterComma x | x <- lines contents, (not . isComment) x, (not . null) x]
-  userInteract realCode
+  let interpretedCode = interpreteCode realCode
+  userInteract interpretedCode
 
 loop :: IO ()
 loop = do
