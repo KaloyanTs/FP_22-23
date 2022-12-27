@@ -33,7 +33,7 @@ toAtom l
     id = toIdentifier (takeWhile (/= '(') l)
     parPart = dropWhile (/= '(') l
     isValidPar = (not . null) parPart && (head parPart == '(' && last parPart == ')')
-    terms = map toTerm (splitBy ',' (init (tail parPart)))
+    terms = map toTerm (map removeEndSpace (splitBy ',' (init (tail parPart))))
 
 toTerm :: String -> Term
 toTerm l
@@ -61,7 +61,7 @@ toRule l
     breaking = break (== ':') noDot
     beforeSpecial = init $ fst breaking
     afterSpecial = drop 3 $ snd breaking
-    atoms = map toAtom (splitBy ',' afterSpecial)
+    atoms = map toAtom (map removeEndSpace (splitBy ',' afterSpecial))
 
 toEquality :: String -> (Term, Term)
 toEquality str

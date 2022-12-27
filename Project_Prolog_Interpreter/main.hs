@@ -21,18 +21,23 @@ interpreteCode c = (rules, facts)
     rules = map toRule (filter isRule c)
     facts = map toFact (filter isFact c)
 
-showQRs :: [QueryResult] -> IO()
+showQRs :: [QueryResult] -> IO ()
 showQRs [] = return ()
-showQRs (x:xs) = do
-    showQR x
-    response<-getLine
-    showQRs xs
+showQRs (x@(EndQR _) : xs) = do
+  showQR x
+  showQRs xs
+showQRs (x : xs) = do
+  showQR x
+  response <- getLine
+  showQRs xs
 
 showQR :: QueryResult -> IO ()
 showQR (EndQR True) = do
   print "true."
 showQR (EndQR False) = do
   print "false."
+showQR (MakeQR (var, id) (EndQR _)) = do
+  print $ showVariable var ++ " = " ++ showIdentifier id ++ "."
 showQR (MakeQR (var, id) qr) = do
   print $ showVariable var ++ " = " ++ showIdentifier id ++ "."
   showQR qr
@@ -47,15 +52,15 @@ interpreteInput input (r, f)
     readyTerm = MakeTermAtom $ toAtom (init input)
     search [] qrs = EndQR False : qrs
     search (fact : fs) qrs
-        | good res = [res] 
-        | notBad res = search fs (res : qrs)
-        | otherwise = search fs qrs
-        where
-            res = toBeUnified (factToTerm fact, readyTerm)
-            good (EndQR True) = True
-            good _ = False
-            notBad (EndQR False) = False
-            notBad _ = True
+      | good res = [res]
+      | notBad res = search fs (res : qrs)
+      | otherwise = search fs qrs
+      where
+        res = toBeUnified (factToTerm fact, readyTerm)
+        good (EndQR True) = True
+        good _ = False
+        notBad (EndQR False) = False
+        notBad _ = True
 
 check :: String -> Database -> IO ()
 check input database = do
@@ -72,8 +77,9 @@ check input database = do
 
 userInteract :: Database -> IO ()
 userInteract database = do
+  putStr "> "
   factInput <- getLine
-  let fact = removeWhiteSpacesAfterComma factInput
+  let fact = removeWhiteSpacesAroundComma factInput
   check fact database
 
 workWithFile :: String -> IO ()
@@ -81,7 +87,12 @@ workWithFile path = do
   contents <- readFile ("prolog/" ++ path)
   let truth = consult contents
   print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
-  let realCode = [removeWhiteSpacesAfterComma x | x <- lines contents, (not . isComment) x, (not . null) x]
+  let realCode =
+        [ removeWhiteSpacesAroundComma x
+          | x <- lines contents,
+            (not . isComment) x,
+            (not . null) x
+        ]
   let interpretedCode = interpreteCode realCode
   userInteract interpretedCode
 

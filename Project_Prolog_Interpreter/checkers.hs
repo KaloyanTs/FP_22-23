@@ -22,7 +22,9 @@ isConstant :: String -> Bool
 isConstant = isIdentifier
 
 isAtom :: String -> Bool
-isAtom l = isValidPar && isIdentifier beforePar && not (null insidePar) && all isTerm (splitBy ',' insidePar)
+isAtom l =
+  isValidPar && isIdentifier beforePar && not (null insidePar)
+    && all isTerm (map removeEndSpace (splitBy ',' insidePar))
   where
     beforePar = takeWhile (/= '(') l
     parPart = dropWhile (/= '(') l
