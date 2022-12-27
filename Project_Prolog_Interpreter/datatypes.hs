@@ -1,5 +1,4 @@
-module Datatypes
-where
+module Datatypes where
 
 data LetterNumberSequence
   = EmptyLNS
@@ -32,3 +31,7 @@ data AtomSequence
 data Rule = MakeRule Atom AtomSequence
 
 type Database = ([Rule], [Fact])
+
+data QueryResult
+  = EndQR Bool
+  | MakeQR (Variable, Identifier) QueryResult

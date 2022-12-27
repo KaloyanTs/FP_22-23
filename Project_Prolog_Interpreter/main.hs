@@ -3,12 +3,12 @@
 {-# HLINT ignore "Use when" #-}
 {-# HLINT ignore "Use bimap" #-}
 
-import Datatypes
-import Conversions
 import Checkers
+import Conversions
+import Datatypes
 import Identities
-import Unification
 import Tools
+import Unification
 
 consult :: String -> (Bool, [String])
 consult contents = (truth, if truth then [] else filter (\x -> not (isFact x || isRule x || isComment x)) (extractData contents))
@@ -21,13 +21,41 @@ interpreteCode c = (rules, facts)
     rules = map toRule (filter isRule c)
     facts = map toFact (filter isFact c)
 
-interpreteInput :: String -> Database -> Bool
+showQRs :: [QueryResult] -> IO()
+showQRs [] = return ()
+showQRs (x:xs) = do
+    showQR x
+    response<-getLine
+    showQRs xs
+
+showQR :: QueryResult -> IO ()
+showQR (EndQR True) = do
+  print "true."
+showQR (EndQR False) = do
+  print "false."
+showQR (MakeQR (var, id) qr) = do
+  print $ showVariable var ++ " = " ++ showIdentifier id ++ "."
+  showQR qr
+
+interpreteInput :: String -> Database -> [QueryResult]
 interpreteInput input (r, f)
-  | isFact input = any (\x->not (null (toBeUnified (factToTerm x ,readyTerm)))) f
+  | isFact input = reverse $ search f []
   | isRule input = error "not done yet"
   --todo must be finished; now telling only true or false
-  | otherwise = not (null (toBeUnified (toEquality input)))
-  where readyTerm = MakeTermAtom $ toAtom (init input)
+  | otherwise = [toBeUnified (toEquality input)]
+  where
+    readyTerm = MakeTermAtom $ toAtom (init input)
+    search [] qrs = EndQR False : qrs
+    search (fact : fs) qrs
+        | good res = [res] 
+        | notBad res = search fs (res : qrs)
+        | otherwise = search fs qrs
+        where
+            res = toBeUnified (factToTerm fact, readyTerm)
+            good (EndQR True) = True
+            good _ = False
+            notBad (EndQR False) = False
+            notBad _ = True
 
 check :: String -> Database -> IO ()
 check input database = do
@@ -39,7 +67,7 @@ check input database = do
           print "You are allowed to input only facts, queries and equalities!"
           userInteract database
         else do
-          print $ if interpreteInput input database then "true." else "false."
+          showQRs $ interpreteInput input database
           userInteract database
 
 userInteract :: Database -> IO ()
