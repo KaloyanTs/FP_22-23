@@ -42,26 +42,6 @@ showQR (MakeQR (var, id) qr) = do
   print $ showVariable var ++ " = " ++ showIdentifier id ++ "."
   showQR qr
 
-interpreteInput :: String -> Database -> [QueryResult]
-interpreteInput input (r, f)
-  | isFact input = reverse $ search f []
-  | isRule input = error "not done yet"
-  --todo must be finished; now telling only true or false
-  | otherwise = [toBeUnified (toEquality input)]
-  where
-    readyTerm = MakeTermAtom $ toAtom (init input)
-    search [] qrs = EndQR False : qrs
-    search (fact : fs) qrs
-      | good res = [res]
-      | notBad res = search fs (res : qrs)
-      | otherwise = search fs qrs
-      where
-        res = toBeUnified (factToTerm fact, readyTerm)
-        good (EndQR True) = True
-        good _ = False
-        notBad (EndQR False) = False
-        notBad _ = True
-
 check :: String -> Database -> IO ()
 check input database = do
   if input == "quit"
