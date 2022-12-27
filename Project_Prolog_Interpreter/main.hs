@@ -2,6 +2,7 @@
 
 {-# HLINT ignore "Use when" #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
+{-# HLINT ignore "Use bimap" #-}
 
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit, isLetter)
 
@@ -22,7 +23,7 @@ data TermSequence
 data Term
   = MakeTermC Constant
   | MakeTermV Variable
-  | MakeTermId Atom
+  | MakeTermAtom Atom
 
 data Atom = MakeAtom Identifier TermSequence
 
@@ -129,7 +130,7 @@ toTerm l
   | not (isTerm l) = error $ l ++ " cannot be a term"
   | isConstant l = MakeTermC (toConstant l)
   | isVariable l = MakeTermV (toVariable l)
-  | otherwise = MakeTermId (toAtom l)
+  | otherwise = MakeTermAtom (toAtom l)
 
 toTermSequence :: [Term] -> TermSequence
 toTermSequence [] = error "term sequence has at least one term"
@@ -177,6 +178,109 @@ toRule l
 
 --todo use break function 2 lines above
 
+--todo implement
+isEquality :: String -> Bool
+isEquality str =
+  '=' `elem` str
+    && last str == '.'
+    && isTerm before
+    && isTerm after
+  where
+    noDot = init str
+    before =
+      reverse $
+        dropWhile (== ' ') $
+          reverse $
+            takeWhile (/= '=') noDot
+    after = dropWhile (== ' ') $ tail $ dropWhile (/= '=') noDot
+
+--todo use break function again
+
+toEquality :: String -> (Term, Term)
+toEquality str
+  | not (isEquality str) = error $ str ++ " cannot be an equality"
+  | otherwise = (toTerm before, toTerm after)
+  where
+    noDot = init str
+    before =
+      reverse $
+        dropWhile (== ' ') $
+          reverse $
+            takeWhile (/= '=') noDot
+    after = dropWhile (== ' ') $ tail $ dropWhile (/= '=') noDot
+
+areIdenticalLNS :: LetterNumberSequence -> LetterNumberSequence -> Bool
+areIdenticalLNS EmptyLNS EmptyLNS = True
+areIdenticalLNS (Cons c1 lns1) (Cons c2 lns2) =
+  c1 == c2
+    && areIdenticalLNS lns1 lns2
+areIdenticalLNS _ _ = False
+
+areIdenticalIds :: Identifier -> Identifier -> Bool
+areIdenticalIds (MakeId c1 lns1) (MakeId c2 lns2) =
+  c1 == c2
+    && areIdenticalLNS lns1 lns2
+
+areIdenticalConstants :: Constant -> Constant -> Bool
+areIdenticalConstants = areIdenticalIds
+
+areIdenticalVariables :: Variable -> Variable -> Bool
+areIdenticalVariables (MakeVar c1 lns1) (MakeVar c2 lns2) =
+  c1 == c2
+    && areIdenticalLNS lns1 lns2
+
+lengthTS :: TermSequence -> Int
+lengthTS (EndTS _) = 1
+lengthTS (MakeTS _ ts) = 1 + lengthTS ts
+
+insertInStack :: TermSequence -> TermSequence -> [(Term, Term)] -> [(Term, Term)]
+insertInStack (EndTS t1) (EndTS t2) stack = (t1, t2) : stack
+insertInStack (MakeTS t1 ts1) (MakeTS t2 ts2) stack = insertInStack ts1 ts2 $ (t1, t2) : stack
+insertInStack _ _ _ = error "TermSequnces must be of equal length"
+
+toBeUnified :: (Term, Term) -> [(Variable, Identifier)]
+--                      stack  result
+toBeUnified pair = iter [pair] []
+  where
+    iter :: [(Term, Term)] -> [(Variable, Identifier)] -> [(Variable, Identifier)]
+    iter [] res = res
+    iter ((MakeTermC lhs, MakeTermC rhs) : pairs) res
+      | areIdenticalConstants lhs rhs = iter pairs res
+      | otherwise = []
+    iter ((MakeTermV lhs, MakeTermV rhs) : pairs) res
+      | areIdenticalVariables lhs rhs = iter pairs res
+      | otherwise = []
+    iter ((MakeTermC lhs, MakeTermV rhs) : pairs) res =
+      iter (replaceStack rhs lhs pairs) ((rhs, lhs) : res)
+    --todo should lhs and rhs be replaced in the res??????
+    iter ((MakeTermV lhs, MakeTermC rhs) : pairs) res =
+      iter (replaceStack lhs rhs pairs) ((lhs, rhs) : res)
+    iter ((MakeTermV _, _) : pairs) _ = []
+    iter ((MakeTermC _, _) : pairs) _ = []
+    iter ((_, MakeTermV _) : pairs) _ = []
+    iter ((_, MakeTermC _) : pairs) _ = []
+    iter ((MakeTermAtom lhsAtom, MakeTermAtom rhsAtom) : pairs) res =
+      proceedAtoms lhsAtom rhsAtom pairs res
+    proceedAtoms (MakeAtom id1 ts1) (MakeAtom id2 ts2) stack res
+      | not (areIdenticalIds id1 id2) = []
+      | lengthTS ts1 /= lengthTS ts2 = []
+      | otherwise = iter (insertInStack ts1 ts2 stack) res
+
+replaceStack :: Variable -> Constant -> [(Term, Term)] -> [(Term, Term)]
+replaceStack var c = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
+  where
+    replaceInTerm :: Term -> Term
+    replaceInTerm p@(MakeTermV v)
+      | areIdenticalVariables v var = MakeTermC c
+      | otherwise = p
+    replaceInTerm p@(MakeTermC _) = p
+    replaceInTerm p@(MakeTermAtom a) = MakeTermAtom (replaceInAtom a)
+    replaceInAtom :: Atom -> Atom
+    replaceInAtom a@(MakeAtom id ts) = MakeAtom id (replaceInTS ts)
+    replaceInTS :: TermSequence -> TermSequence
+    replaceInTS (EndTS t) = EndTS (replaceInTerm t)
+    replaceInTS (MakeTS t ts) = MakeTS (replaceInTerm t) (replaceInTS ts)
+
 showAtom :: Atom -> [Char]
 showAtom (MakeAtom id ts) = showIdentifier id ++ "(" ++ showTermSequence ts ++ ")"
 
@@ -187,7 +291,7 @@ showTermSequence (MakeTS t ts) = showTerm t ++ showTermSequence ts
 showTerm :: Term -> [Char]
 showTerm (MakeTermC c) = showConstant c
 showTerm (MakeTermV v) = showVariable v
-showTerm (MakeTermId a) = showAtom a
+showTerm (MakeTermAtom a) = showAtom a
 
 showConstant :: Identifier -> [Char]
 showConstant = showIdentifier
@@ -250,24 +354,29 @@ showRules (r, f) = map showRule r
 
 getFactIds :: Fact -> [Identifier]
 getFactIds (MakeAtom id ts) = id : getTSIds ts
+
 getTSIds :: TermSequence -> [Identifier]
 getTSIds (EndTS t) = getTermIds t
 getTSIds (MakeTS t ts) = getTermIds t ++ getTSIds ts
+
 getTermIds :: Term -> [Identifier]
 getTermIds (MakeTermC c) = [c]
 getTermIds (MakeTermV _) = []
-getTermIds (MakeTermId a) = getAtomIds a
+getTermIds (MakeTermAtom a) = getAtomIds a
+
 getAtomIds :: Atom -> [Identifier]
 getAtomIds (MakeAtom id ts) = id : getTSIds ts
+
 --todo not sure whether those below are necessary
 getASIds :: AtomSequence -> [Identifier]
 getASIds (EndAS a) = getAtomIds a
 getASIds (MakeAS a as) = getAtomIds a ++ getASIds as
+
 getRuleIds :: Rule -> [Identifier]
 getRuleIds (MakeRule a as) = getAtomIds a ++ getASIds as
 
 allIdentifiers :: Database -> [Identifier]
-allIdentifiers (r,f) = concatMap getRuleIds r ++ concatMap getFactIds f
+allIdentifiers (r, f) = concatMap getRuleIds r ++ concatMap getFactIds f
 
 --todo experiment using datatypes above
 
@@ -276,9 +385,9 @@ check input database = do
   if input == "quit"
     then return ()
     else
-      if not (isFact input) && not (isRule input)
+      if not (isFact input) && not (isRule input) && not (isEquality input)
         then do
-          print "You are allowed to input only facts and queries!"
+          print "You are allowed to input only facts, queries and equalities!"
           userInteract database
         else do
           print $ if input `elem` database then "true." else "false."
