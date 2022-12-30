@@ -29,7 +29,9 @@ showQRs (x@(EndQR _) : xs) = do
 showQRs (x : xs) = do
   showQR x
   response <- getLine
-  showQRs xs
+  if head response == 'q'
+    then return ()
+    else showQRs xs
 
 showQR :: QueryResult -> IO ()
 showQR (EndQR True) = do
