@@ -102,3 +102,14 @@ anyAS p (MakeAS a as) = p a || anyAS p as
 allAS :: (Atom->Bool) -> AtomSequence -> Bool
 allAS p (EndAS a) = p a
 allAS p (MakeAS a as) = p a && allAS p as
+
+good :: QueryResult -> Bool
+good (EndQR True) = True
+good _ = False
+
+bad :: QueryResult -> Bool
+bad (EndQR False) = True
+bad _ = False
+
+notBad :: QueryResult -> Bool
+notBad = not.bad

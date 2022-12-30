@@ -9,6 +9,7 @@ import Datatypes
 import Identities
 import Tools
 import Unification
+import Resolutions
 
 consult :: String -> (Bool, [String])
 consult contents = (truth, if truth then [] else filter (\x -> not (isFact x || isRule x || isComment x)) (extractData contents))
@@ -29,7 +30,7 @@ showQRs (x@(EndQR _) : xs) = do
 showQRs (x : xs) = do
   showQR x
   response <- getLine
-  if head response == 'q'
+  if (not.null) response && head response == 'q'
     then return ()
     else showQRs xs
 

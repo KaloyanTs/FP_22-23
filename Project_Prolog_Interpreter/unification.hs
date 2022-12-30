@@ -60,23 +60,3 @@ replaceStack var c = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
     replaceInTS :: TermSequence -> TermSequence
     replaceInTS (EndTS t) = EndTS (replaceInTerm t)
     replaceInTS (MakeTS t ts) = MakeTS (replaceInTerm t) (replaceInTS ts)
-
-interpreteInput :: String -> Database -> [QueryResult]
-interpreteInput input (r, f)
-  | isFact input = reverse $ search f []
-  | isRule input = error "not done yet"
-  --todo must be finished; now telling only true or false
-  | otherwise = [toBeUnified (toEquality input)]
-  where
-    readyTerm = MakeTermAtom $ toAtom (init input)
-    search [] qrs = EndQR False : qrs
-    search (fact : fs) qrs
-      | good res = [res]
-      | notBad res = search fs (res : qrs)
-      | otherwise = search fs qrs
-      where
-        res = toBeUnified (factToTerm fact, readyTerm)
-        good (EndQR True) = True
-        good _ = False
-        notBad (EndQR False) = False
-        notBad _ = True
