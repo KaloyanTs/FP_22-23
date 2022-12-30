@@ -24,7 +24,7 @@ isConstant = isIdentifier
 isAtom :: String -> Bool
 isAtom l =
   isValidPar && isIdentifier beforePar && not (null insidePar)
-    && all isTerm (map removeEndSpace (splitBy ',' insidePar))
+    && all (isTerm . removeEndSpace) (splitBy ',' insidePar)
   where
     beforePar = takeWhile (/= '(') l
     parPart = dropWhile (/= '(') l
@@ -97,8 +97,8 @@ tsContainsVariable (MakeTS t ts) =
 
 anyAS :: (Atom->Bool) -> AtomSequence -> Bool
 anyAS p (EndAS a) = p a
-anyAS p (MakeAS a as) = p a || any p as
+anyAS p (MakeAS a as) = p a || anyAS p as
 
 allAS :: (Atom->Bool) -> AtomSequence -> Bool
 allAS p (EndAS a) = p a
-allAS p (MakeAS a as) = p a && any p as
+allAS p (MakeAS a as) = p a && allAS p as
