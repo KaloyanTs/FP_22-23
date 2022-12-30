@@ -94,3 +94,11 @@ tsContainsVariable (EndTS t) = termContainsVariable t
 tsContainsVariable (MakeTS t ts) =
   termContainsVariable t
     || tsContainsVariable ts
+
+anyAS :: (Atom->Bool) -> AtomSequence -> Bool
+anyAS p (EndAS a) = p a
+anyAS p (MakeAS a as) = p a || any p as
+
+allAS :: (Atom->Bool) -> AtomSequence -> Bool
+allAS p (EndAS a) = p a
+allAS p (MakeAS a as) = p a && any p as
