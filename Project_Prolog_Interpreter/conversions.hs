@@ -33,7 +33,7 @@ toAtom l
     id = toIdentifier (takeWhile (/= '(') l)
     parPart = dropWhile (/= '(') l
     isValidPar = (not . null) parPart && (head parPart == '(' && last parPart == ')')
-    terms = map toTerm (map removeEndSpace (splitBy ',' (init (tail parPart))))
+    terms = map (toTerm . removeEndSpace) (splitBy ',' (init (tail parPart)))
 
 toTerm :: String -> Term
 toTerm l

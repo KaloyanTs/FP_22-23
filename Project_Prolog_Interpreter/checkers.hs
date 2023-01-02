@@ -113,3 +113,5 @@ bad _ = False
 
 notBad :: QueryResult -> Bool
 notBad = not.bad
+
+areIdenticalQR :: -> QueryResult -> QueryResult -> Bool

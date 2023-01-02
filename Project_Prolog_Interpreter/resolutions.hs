@@ -6,13 +6,36 @@ import Datatypes
 import Identities
 import Unification
 
+uniqueQRs :: [QueryResult] -> [QueryResult]
+uniqueQRs [] = []
+uniqueQRs (qr:qrs) = qr : filter (not.areIdenticalQR qr) qrs
+--todo implement areIdenticalQR
+
 --todo understand resolution and implement here
+--todo quieries must not finish with false (at least not to be shown)
 resolve :: Term -> Database -> [QueryResult]
-resolve t (r,f)
-  | not (null factsRes) = factsRes
-  | otherwise = [EndQR False] --todo start working with rules, now is bad
+resolve t (r,f) = uniqueQRs $ factsRes ++ searchSolution rulesRes
   where
     factsRes = filter notBad (map (\fact->toBeUnified (factToTerm fact, t)) f)
+    -- rules whose head can be unified with the term
+    -- the queryResult is kept for applying over the atomseqence
+    rulesRes = filter (notBad.snd)
+                      (map
+                      (\rule@(MakeRule a as)->(as,toBeUnified (MakeTermAtom a, t)))
+                      r)
+    searchSolution results = map (\res@(as,requirements)->
+                                          if solve (apply as requirements)
+                                          then requirements
+                                          else EndQR False) results
+      where
+    --todo solve says if atom sequence has compatible solution
+        solve :: AtomSequence -> Bool
+        solve as = False
+        apply :: AtomSequence -> QueryResult -> AtomSequence
+        apply x qr = x
+    --todo solve today
+
+    --   todo still not understanding
 
 interpreteInput :: String -> Database -> [QueryResult]
 interpreteInput input db@(r, f)

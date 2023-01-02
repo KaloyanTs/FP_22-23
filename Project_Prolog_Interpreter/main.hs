@@ -23,14 +23,17 @@ interpreteCode c = (rules, facts)
     facts = map toFact (filter isFact c)
 
 showQRs :: [QueryResult] -> IO ()
-showQRs [] = return ()
-showQRs (x@(EndQR _) : xs) = do
+showQRs [] = do
+    print "false."
+showQRs [qr] = do
+    showQR qr
+showQRs (x@(EndQR _):xs) = do
   showQR x
   showQRs xs
 showQRs (x : xs) = do
   showQR x
   response <- getLine
-  if (not.null) response && head response == 'q'
+  if (not.null) response
     then return ()
     else showQRs xs
 
