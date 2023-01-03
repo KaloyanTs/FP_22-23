@@ -9,7 +9,6 @@ import Unification
 uniqueQRs :: [QueryResult] -> [QueryResult]
 uniqueQRs [] = []
 uniqueQRs (qr:qrs) = qr : filter (not.areIdenticalQR qr) qrs
---todo implement areIdenticalQR
 
 --todo understand resolution and implement here
 --todo quieries must not finish with false (at least not to be shown)

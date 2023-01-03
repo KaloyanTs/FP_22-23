@@ -3,6 +3,7 @@ module Checkers where
 import Data.Char
 import Datatypes
 import Tools
+import Identities
 
 isIdentifier :: String -> Bool
 isIdentifier [] = False
@@ -114,4 +115,8 @@ bad _ = False
 notBad :: QueryResult -> Bool
 notBad = not.bad
 
-areIdenticalQR :: -> QueryResult -> QueryResult -> Bool
+areIdenticalQR :: QueryResult -> QueryResult -> Bool
+areIdenticalQR (EndQR a) (EndQR b) = a==b
+areIdenticalQR (MakeQR (v1,id1) qr1) (MakeQR (v2,id2) qr2)
+  = areIdenticalIds id1 id2 && areIdenticalVariables v1 v2 && areIdenticalQR qr1 qr2
+areIdenticalQR _ _ = False
