@@ -60,3 +60,22 @@ replaceStack var c = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
     replaceInTS :: TermSequence -> TermSequence
     replaceInTS (EndTS t) = EndTS (replaceInTerm t)
     replaceInTS (MakeTS t ts) = MakeTS (replaceInTerm t) (replaceInTS ts)
+
+applyAS :: AtomSequence -> QueryResult -> AtomSequence
+applyAS (EndAS a) qr = EndAS (apply a qr)
+applyAS (MakeAS a as) qr = MakeAS (apply a qr) (applyAS as qr)
+apply :: Atom -> QueryResult -> Atom
+apply a (MakeQR (var,id) qr@(MakeQR _ _)) = apply (substituteAtom var id a) qr
+apply a (MakeQR (var,id) (EndQR _)) = substituteAtom var id a
+apply _ _ = error "query must not have been empty..."
+substituteAtom :: Variable -> Identifier -> Atom -> Atom
+substituteAtom var iD (MakeAtom idPart ts) = MakeAtom idPart (substituteTS var iD ts)
+substituteTS :: Variable -> Identifier -> TermSequence -> TermSequence
+substituteTS var id (EndTS t) = EndTS (substituteTerm var id t)
+substituteTS var id (MakeTS t ts) = MakeTS (substituteTerm var id t) (substituteTS var id ts)
+substituteTerm :: Variable -> Identifier -> Term -> Term
+substituteTerm var id t@(MakeTermV v)
+  | areIdenticalVariables var v = MakeTermC id
+  | otherwise = t
+substituteTerm var id t@(MakeTermAtom a) = MakeTermAtom (substituteAtom var id a)
+substituteTerm _ _ t = t

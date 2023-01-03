@@ -29,7 +29,6 @@ showQRs [qr] = do
     showQR qr
 showQRs (x@(EndQR _):xs) = do
   showQR x
-  showQRs xs
 showQRs (x : xs) = do
   showQR x
   response <- getLine

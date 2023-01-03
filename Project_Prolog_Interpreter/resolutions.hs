@@ -13,26 +13,32 @@ uniqueQRs (qr:qrs) = qr : filter (not.areIdenticalQR qr) qrs
 --todo understand resolution and implement here
 --todo quieries must not finish with false (at least not to be shown)
 resolve :: Term -> Database -> [QueryResult]
-resolve t (r,f) = uniqueQRs $ factsRes ++ searchSolution rulesRes
+resolve t db@(r,f)
+  -- = res
+  | noVars && null res = [EndQR False]
+  | noVars = [EndQR True]
+  | otherwise =  res
   where
+    noVars = (not.termContainsVariable) t
+    res = uniqueQRs $ factsRes ++ searchSolution rulesRes
     factsRes = filter notBad (map (\fact->toBeUnified (factToTerm fact, t)) f)
     -- rules whose head can be unified with the term
-    -- the queryResult is kept for applying over the atomseqence
+    -- the queryResult is kept for applyASing over the atomseqence
     rulesRes = filter (notBad.snd)
                       (map
-                      (\rule@(MakeRule a as)->(as,toBeUnified (MakeTermAtom a, t)))
+                      (\rule@(MakeRule a as)->(as,toBeUnified (t, MakeTermAtom a)))
                       r)
-    searchSolution results = map (\res@(as,requirements)->
-                                          if solve (apply as requirements)
+                      --todo not working
+    searchSolution results = filter notBad $ map (\res@(as,requirements)->
+                                          if solve (applyAS as requirements)
                                           then requirements
                                           else EndQR False) results
       where
     --todo solve says if atom sequence has compatible solution
+    --todo solve must return all requirements and function must use them to tell which are necessary
         solve :: AtomSequence -> Bool
-        solve as = False
-        apply :: AtomSequence -> QueryResult -> AtomSequence
-        apply x qr = x
-    --todo solve today
+        solve (EndAS a) = (\x->(not.null) x && notBad (head x)) $ resolve (MakeTermAtom  a) db
+        solve (MakeAS a as) = any (solve . applyAS as) (resolve (MakeTermAtom a) db)
 
     --   todo still not understanding
 

@@ -152,3 +152,7 @@ allIdentifiers (r, f) = concatMap getRuleIds r ++ concatMap getFactIds f
 
 factToTerm :: Fact -> Term
 factToTerm f = MakeTermAtom (toAtom (init (showFact f)))
+
+termToAtom :: Term->Atom
+termToAtom (MakeTermAtom a) = a
+termToAtom _ = error "impossible conversion..."
