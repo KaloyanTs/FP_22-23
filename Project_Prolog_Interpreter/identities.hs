@@ -3,6 +3,8 @@ where
 
 import Datatypes
 
+--todo solve using fmap and classes ???
+
 areIdenticalLNS :: LetterNumberSequence -> LetterNumberSequence -> Bool
 areIdenticalLNS EmptyLNS EmptyLNS = True
 areIdenticalLNS (Cons c1 lns1) (Cons c2 lns2) =
