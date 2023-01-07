@@ -14,16 +14,14 @@ uniqueQRs (qr:qrs) = qr : filter (not.areIdenticalQR qr) qrs
 --todo quieries must not finish with false (at least not to be shown)
 resolve :: Term -> Database -> [QueryResult]
 resolve t db@(r,f)
-  -- = res
-  | noVars && null res = [EndQR False]
-  | noVars = [EndQR True]
+  | noVars = [EndQR ((not.null) res)]
   | otherwise =  res
   where
     noVars = (not.termContainsVariable) t
     res = uniqueQRs $ factsRes ++ searchSolution rulesRes
     factsRes = filter notBad (map (\fact->toBeUnified (factToTerm fact, t)) f)
     -- rules whose head can be unified with the term
-    -- the queryResult is kept for applyASing over the atomseqence
+    -- the queryResult is kept for applyASing over the atomsequence
     rulesRes = filter (notBad.snd)
                       (map
                       (\rule@(MakeRule a as)->(as,toBeUnified (t, MakeTermAtom a)))
@@ -31,6 +29,7 @@ resolve t db@(r,f)
                       --todo not working
     searchSolution results = filter notBad $ map (\res@(as,requirements)->
                                           if solve (applyAS as requirements)
+                                            -- todo why it is empty for ivan,penka
                                           then requirements
                                           else EndQR False) results
       where
