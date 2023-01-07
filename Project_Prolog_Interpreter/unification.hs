@@ -27,9 +27,11 @@ toBeUnified pair@(l, r)
     iter ((MakeTermC lhs, MakeTermC rhs) : pairs) res
       | areIdenticalConstants lhs rhs = iter pairs res
       | otherwise = EndQR False
-    iter ((MakeTermV lhs, MakeTermV rhs) : pairs) res
+    iter ((MakeTermV lhs, MakeTermV rhs) : pairs) res 
+    -- = iter pairs res
       | areIdenticalVariables lhs rhs = iter pairs res
       | otherwise = EndQR False
+      -- todo consider removing this check
     iter ((MakeTermC lhs, MakeTermV rhs) : pairs) res =
       iter (replaceStack rhs lhs pairs) (MakeQR (rhs, lhs) res)
     --todo should lhs and rhs be replaced in the res??????
