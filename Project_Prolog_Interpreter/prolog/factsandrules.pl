@@ -21,3 +21,7 @@ parent(X,Y) :- mother(X, Y).
 
 %parent/2
 childof(X,Y) :- parent(Y,X).
+
+male(ivan).
+parent(ivan, penka).
+father(X,Y) :- male(X), parent(X,Y).
