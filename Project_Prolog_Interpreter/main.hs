@@ -86,7 +86,7 @@ loop = do
   putStr "Which file to consult from the directory \"prolog/\"?\n> "
   file <- getLine
   workWithFile file
-  putStrLn "Consult another file? ( y | [n] )"
+  putStr "Consult another file? ( y | [n] )\n> "
   response <- getLine
   if (not . null) response && head response == 'y' then loop else return ()
 
