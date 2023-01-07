@@ -41,10 +41,10 @@ showQR (EndQR True) = do
   print "true."
 showQR (EndQR False) = do
   print "false."
-showQR (MakeQR (var, id) (EndQR _)) = do
-  print $ showVariable var ++ " = " ++ showIdentifier id ++ "."
-showQR (MakeQR (var, id) qr) = do
-  print $ showVariable var ++ " = " ++ showIdentifier id ++ "."
+showQR (MakeQR (var, r) (EndQR _)) = do
+  print $ showVariable var ++ " = " ++ showReplacement r ++ "."
+showQR (MakeQR (var, r) qr) = do
+  print $ showVariable var ++ " = " ++ showReplacement r ++ "."
   showQR qr
 
 check :: String -> Database -> IO ()

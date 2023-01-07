@@ -34,4 +34,13 @@ type Database = ([Rule], [Fact])
 
 data QueryResult
   = EndQR Bool
-  | MakeQR (Variable, Identifier) QueryResult
+  | MakeQR (Variable, Replacement) QueryResult
+
+data Replacement
+  = ReplaceId Identifier
+  | ReplaceVar Variable
+
+data ResolutionTree
+  = EmptyRT
+  | NodeRT TermSequence [ResolutionTree]
+  | LeafRT TermSequence QueryResult 

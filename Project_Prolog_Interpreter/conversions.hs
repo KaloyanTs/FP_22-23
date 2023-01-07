@@ -81,39 +81,43 @@ toAtomSequence [] = error "atom sequence consists of at least one atom"
 toAtomSequence [a] = EndAS a
 toAtomSequence (x : xs) = MakeAS x (toAtomSequence xs)
 
-showAtom :: Atom -> [Char]
+showAtom :: Atom -> String
 showAtom (MakeAtom id ts) = showIdentifier id ++ "(" ++ showTermSequence ts ++ ")"
 
-showTermSequence :: TermSequence -> [Char]
+showTermSequence :: TermSequence -> String
 showTermSequence (EndTS t) = showTerm t
 showTermSequence (MakeTS t ts) = showTerm t ++ "," ++ showTermSequence ts
 
-showTerm :: Term -> [Char]
+showTerm :: Term -> String
 showTerm (MakeTermC c) = showConstant c
 showTerm (MakeTermV v) = showVariable v
 showTerm (MakeTermAtom a) = showAtom a
 
-showConstant :: Identifier -> [Char]
+showConstant :: Identifier -> String
 showConstant = showIdentifier
 
-showVariable :: Variable -> [Char]
+showVariable :: Variable -> String
 showVariable (MakeVar c lns) = c : showLNS lns
 
-showIdentifier :: Identifier -> [Char]
+showIdentifier :: Identifier -> String
 showIdentifier (MakeId c lns) = c : showLNS lns
 
-showLNS :: LetterNumberSequence -> [Char]
+showReplacement :: Replacement -> String
+showReplacement (ReplaceId id) = showIdentifier id
+showReplacement (ReplaceVar var) = showVariable var
+
+showLNS :: LetterNumberSequence -> String
 showLNS EmptyLNS = []
 showLNS (Cons a lns) = a : showLNS lns
 
 showRule :: Rule -> String
 showRule (MakeRule a as) = showAtom a ++ " :- " ++ showAtomSequence as ++ "."
 
-showAtomSequence :: AtomSequence -> [Char]
+showAtomSequence :: AtomSequence -> String
 showAtomSequence (EndAS a) = showAtom a
 showAtomSequence (MakeAS a as) = showAtom a ++ "," ++ showAtomSequence as
 
-showFact :: Atom -> [Char]
+showFact :: Atom -> String
 showFact a = showAtom a ++ "."
 
 showFacts :: Database -> [String]

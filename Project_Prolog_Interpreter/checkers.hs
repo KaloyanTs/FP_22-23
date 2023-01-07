@@ -118,5 +118,10 @@ notBad = not.bad
 areIdenticalQR :: QueryResult -> QueryResult -> Bool
 areIdenticalQR (EndQR a) (EndQR b) = a==b
 areIdenticalQR (MakeQR (v1,id1) qr1) (MakeQR (v2,id2) qr2)
-  = areIdenticalIds id1 id2 && areIdenticalVariables v1 v2 && areIdenticalQR qr1 qr2
+  = areIdenticalReplacements id1 id2 && areIdenticalVariables v1 v2 && areIdenticalQR qr1 qr2
 areIdenticalQR _ _ = False
+
+areIdenticalReplacements :: Replacement -> Replacement -> Bool
+areIdenticalReplacements (ReplaceId a) (ReplaceId b) = areIdenticalIds a b
+areIdenticalReplacements (ReplaceVar a) (ReplaceVar b) = areIdenticalVariables a b
+areIdenticalReplacements _ _ = False

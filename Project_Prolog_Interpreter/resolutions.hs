@@ -24,7 +24,7 @@ resolve t db@(r,f)
     -- the queryResult is kept for applyASing over the atomsequence
     rulesRes = filter (notBad.snd)
                       (map
-                      (\rule@(MakeRule a as)->(as,toBeUnified (t, MakeTermAtom a)))
+                      (\rule@(MakeRule a as)->(as,toBeUnified (MakeTermAtom a, t)))
                       r)
                       --todo not working
     searchSolution results = filter notBad $ map (\res@(as,requirements)->
@@ -41,24 +41,20 @@ resolve t db@(r,f)
 
     --   todo still not understanding
 
+buildRTree :: Database -> Term -> ResolutionTree
+buildRTree _ _ = EmptyRT
+
+collectSolutions :: ResolutionTree -> [QueryResult]
+collectSolutions EmptyRT = []
+collectSolutions (LeafRT _ qr) = [qr]
+collectSolutions (NodeRT _ ts) = concatMap collectSolutions ts
+
 interpreteInput :: String -> Database -> [QueryResult]
 interpreteInput input db@(r, f)
   | isFact input = resolve readyTerm db
+  --  | isFact input = collectSolutions (buildTree db readyTerm) readyTerm db
+--todo develop resolution tree and use the line above 
+--todo (with needed constrains about the unifiers (only those existent in readyTerm))
   | otherwise = [toBeUnified (toEquality input)]
   where
     readyTerm = MakeTermAtom $ toAtom (init input)
-
--- interpreteInput :: String -> Database -> [QueryResult]
--- interpreteInput input (r, f)
---   | isFact input = reverse $ search f []
---   | isRule input = error "not done yet"
---   | otherwise = [toBeUnified (toEquality input)]
---   where
---     readyTerm = MakeTermAtom $ toAtom (init input)
---     search [] qrs = EndQR False : qrs
---     search (fact : fs) qrs
---       | good res = [res]
---       | notBad res = search fs (res : qrs)
---       | otherwise = search fs qrs
---       where
---         res = toBeUnified (factToTerm fact, readyTerm)

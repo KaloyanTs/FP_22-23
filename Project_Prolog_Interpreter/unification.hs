@@ -27,16 +27,19 @@ toBeUnified pair@(l, r)
     iter ((MakeTermC lhs, MakeTermC rhs) : pairs) res
       | areIdenticalConstants lhs rhs = iter pairs res
       | otherwise = EndQR False
-    iter ((MakeTermV lhs, MakeTermV rhs) : pairs) res 
-    -- = iter pairs res
-      | areIdenticalVariables lhs rhs = iter pairs res
-      | otherwise = EndQR False
+    iter ((MakeTermV lhs, MakeTermV rhs) : pairs) res
+      = iter (replaceStackVar lhs rhs pairs) 
+              (MakeQR (lhs, ReplaceVar rhs) res)
+      --  | areIdenticalVariables lhs rhs = iter 
+      --                                   (replaceStackVar lhs rhs pairs) 
+      --                                   (MakeQR (lhs, ReplaceVar rhs) res)
+      --  | otherwise = EndQR False
       -- todo consider removing this check
     iter ((MakeTermC lhs, MakeTermV rhs) : pairs) res =
-      iter (replaceStack rhs lhs pairs) (MakeQR (rhs, lhs) res)
+      iter (replaceStackC rhs lhs pairs) (MakeQR (rhs, ReplaceId lhs) res)
     --todo should lhs and rhs be replaced in the res??????
     iter ((MakeTermV lhs, MakeTermC rhs) : pairs) res =
-      iter (replaceStack lhs rhs pairs) (MakeQR (lhs, rhs) res)
+      iter (replaceStackC lhs rhs pairs) (MakeQR (lhs, ReplaceId rhs) res)
     iter ((MakeTermV _, _) : pairs) _ = EndQR False
     iter ((MakeTermC _, _) : pairs) _ = EndQR False
     iter ((_, MakeTermV _) : pairs) _ = EndQR False
@@ -48,8 +51,8 @@ toBeUnified pair@(l, r)
       | lengthTS ts1 /= lengthTS ts2 = EndQR False
       | otherwise = iter (insertInStack ts1 ts2 stack) res
 
-replaceStack :: Variable -> Constant -> [(Term, Term)] -> [(Term, Term)]
-replaceStack var c = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
+replaceStackC :: Variable -> Constant -> [(Term, Term)] -> [(Term, Term)]
+replaceStackC var c = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
   where
     replaceInTerm :: Term -> Term
     replaceInTerm p@(MakeTermV v)
@@ -63,21 +66,39 @@ replaceStack var c = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
     replaceInTS (EndTS t) = EndTS (replaceInTerm t)
     replaceInTS (MakeTS t ts) = MakeTS (replaceInTerm t) (replaceInTS ts)
 
+replaceStackVar :: Variable -> Variable -> [(Term, Term)] -> [(Term, Term)]
+replaceStackVar var r = map (\(l, r) -> (replaceInTerm l, replaceInTerm r))
+  where
+    replaceInTerm :: Term -> Term
+    replaceInTerm p@(MakeTermV v)
+      | areIdenticalVariables v var = MakeTermV r
+      | otherwise = p
+    replaceInTerm p@(MakeTermC _) = p
+    replaceInTerm p@(MakeTermAtom a) = MakeTermAtom (replaceInAtom a)
+    replaceInAtom :: Atom -> Atom
+    replaceInAtom a@(MakeAtom id ts) = MakeAtom id (replaceInTS ts)
+    replaceInTS :: TermSequence -> TermSequence
+    replaceInTS (EndTS t) = EndTS (replaceInTerm t)
+    replaceInTS (MakeTS t ts) = MakeTS (replaceInTerm t) (replaceInTS ts)
+
 applyAS :: AtomSequence -> QueryResult -> AtomSequence
 applyAS (EndAS a) qr = EndAS (apply a qr)
 applyAS (MakeAS a as) qr = MakeAS (apply a qr) (applyAS as qr)
 apply :: Atom -> QueryResult -> Atom
-apply a (MakeQR (var,id) qr@(MakeQR _ _)) = apply (substituteAtom var id a) qr
-apply a (MakeQR (var,id) (EndQR _)) = substituteAtom var id a
+apply a (MakeQR (var,r) qr@(MakeQR _ _)) = apply (substituteAtom var r a) qr
+apply a (MakeQR (var,r) (EndQR _)) = substituteAtom var r a
 apply _ _ = error "query must not have been empty..."
-substituteAtom :: Variable -> Identifier -> Atom -> Atom
-substituteAtom var iD (MakeAtom idPart ts) = MakeAtom idPart (substituteTS var iD ts)
-substituteTS :: Variable -> Identifier -> TermSequence -> TermSequence
-substituteTS var id (EndTS t) = EndTS (substituteTerm var id t)
-substituteTS var id (MakeTS t ts) = MakeTS (substituteTerm var id t) (substituteTS var id ts)
-substituteTerm :: Variable -> Identifier -> Term -> Term
-substituteTerm var id t@(MakeTermV v)
+substituteAtom :: Variable -> Replacement -> Atom -> Atom
+substituteAtom var r (MakeAtom idPart ts) = MakeAtom idPart (substituteTS var r ts)
+substituteTS :: Variable -> Replacement -> TermSequence -> TermSequence
+substituteTS var r (EndTS t) = EndTS (substituteTerm var r t)
+substituteTS var r (MakeTS t ts) = MakeTS (substituteTerm var r t) (substituteTS var r ts)
+substituteTerm :: Variable -> Replacement -> Term -> Term
+substituteTerm var (ReplaceId id) t@(MakeTermV v)
   | areIdenticalVariables var v = MakeTermC id
   | otherwise = t
-substituteTerm var id t@(MakeTermAtom a) = MakeTermAtom (substituteAtom var id a)
+substituteTerm var (ReplaceVar a) t@(MakeTermV v)
+  | areIdenticalVariables var v = MakeTermV a
+  | otherwise = t
+substituteTerm var r t@(MakeTermAtom a) = MakeTermAtom (substituteAtom var r a)
 substituteTerm _ _ t = t
