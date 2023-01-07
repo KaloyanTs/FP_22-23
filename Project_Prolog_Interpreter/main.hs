@@ -24,7 +24,7 @@ interpreteCode c = (rules, facts)
 
 showQRs :: [QueryResult] -> IO ()
 showQRs [] = do
-    print "false."
+    putStrLn "false."
 showQRs [qr] = do
     showQR qr
 showQRs (x@(EndQR _):xs) = do
@@ -38,13 +38,13 @@ showQRs (x : xs) = do
 
 showQR :: QueryResult -> IO ()
 showQR (EndQR True) = do
-  print "true."
+  putStrLn "true."
 showQR (EndQR False) = do
-  print "false."
+  putStrLn "false."
 showQR (MakeQR (var, r) (EndQR _)) = do
-  print $ showVariable var ++ " = " ++ showReplacement r ++ "."
+  putStrLn $ showVariable var ++ " = " ++ showReplacement r ++ "."
 showQR (MakeQR (var, r) qr) = do
-  print $ showVariable var ++ " = " ++ showReplacement r ++ "."
+  putStrLn $ showVariable var ++ " = " ++ showReplacement r ++ "."
   showQR qr
 
 check :: String -> Database -> IO ()
@@ -54,7 +54,7 @@ check input database = do
     else
       if not (isFact input) && not (isRule input) && not (isEquality input)
         then do
-          print "You are allowed to input only facts, queries and equalities!"
+          putStrLn "You are allowed to input only facts, queries and equalities!"
           userInteract database
         else do
           showQRs $ interpreteInput input database
@@ -71,7 +71,7 @@ workWithFile :: String -> IO ()
 workWithFile path = do
   contents <- readFile ("prolog/" ++ path)
   let truth = consult contents
-  print $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
+  putStrLn $ if fst truth then "true." else "false.\n" ++ unlines (snd truth)
   let realCode =
         [ removeWhiteSpacesAroundComma x
           | x <- lines contents,
