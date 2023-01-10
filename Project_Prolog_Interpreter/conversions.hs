@@ -157,6 +157,14 @@ allIdentifiers (r, f) = concatMap getRuleIds r ++ concatMap getFactIds f
 factToTerm :: Fact -> Term
 factToTerm f = MakeTermAtom (toAtom (init (showFact f)))
 
-termToAtom :: Term->Atom
+termToAtom :: Term -> Atom
 termToAtom (MakeTermAtom a) = a
 termToAtom _ = error "impossible conversion..."
+
+tsToTermArray :: TermSequence -> [Term]
+tsToTermArray (EndTS t) = [t]
+tsToTermArray (MakeTS t ts) = t : tsToTermArray ts
+
+asToAtomArray :: AtomSequence -> [Atom]
+asToAtomArray (EndAS a) = [a]
+asToAtomArray (MakeAS a as) = a : asToAtomArray as

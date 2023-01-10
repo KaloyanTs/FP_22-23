@@ -42,5 +42,5 @@ data Replacement
 
 data ResolutionTree
   = EmptyRT
-  | NodeRT TermSequence [ResolutionTree]
-  | LeafRT TermSequence QueryResult 
+  | NodeRT [Atom] [ResolutionTree]
+  | LeafRT QueryResult

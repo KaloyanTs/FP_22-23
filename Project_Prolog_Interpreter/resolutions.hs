@@ -8,53 +8,72 @@ import Unification
 
 uniqueQRs :: [QueryResult] -> [QueryResult]
 uniqueQRs [] = []
-uniqueQRs (qr:qrs) = qr : filter (not.areIdenticalQR qr) qrs
+uniqueQRs (qr : qrs) = qr : filter (not . areIdenticalQR qr) qrs
 
 --todo understand resolution and implement here
 --todo quieries must not finish with false (at least not to be shown)
 resolve :: Term -> Database -> [QueryResult]
-resolve t db@(r,f)
-  | noVars = [EndQR ((not.null) res)]
-  | otherwise =  res
+resolve t db@(r, f)
+  | noVars = [EndQR ((not . null) res)]
+  | otherwise = res
   where
-    noVars = (not.termContainsVariable) t
+    noVars = (not . termContainsVariable) t
     res = uniqueQRs $ factsRes ++ searchSolution rulesRes
-    factsRes = filter notBad (map (\fact->toBeUnified (factToTerm fact, t)) f)
+    factsRes = filter notBad (map (\fact -> toBeUnified (factToTerm fact, t)) f)
     -- rules whose head can be unified with the term
     -- the queryResult is kept for applyASing over the atomsequence
-    rulesRes = filter (notBad.snd)
-                      (map
-                      (\rule@(MakeRule a as)->(as,toBeUnified (MakeTermAtom a, t)))
-                      r)
-                      --todo not working
-    searchSolution results = filter notBad $ map (\res@(as,requirements)->
-                                          if solve (applyAS as requirements)
-                                            -- todo why it is empty for ivan,penka
-                                          then requirements
-                                          else EndQR False) results
+    rulesRes =
+      filter
+        (notBad . snd)
+        ( map
+            (\rule@(MakeRule a as) -> (as, toBeUnified (MakeTermAtom a, t)))
+            r
+        )
+    --todo not working
+    searchSolution results =
+      filter notBad $
+        map
+          ( \res@(as, requirements) ->
+              if solve (applyAS as requirements)
+                then -- todo why it is empty for ivan,penka
+                  requirements
+                else EndQR False
+          )
+          results
       where
-    --todo solve says if atom sequence has compatible solution
-    --todo solve must return all requirements and function must use them to tell which are necessary
+        --todo solve says if atom sequence has compatible solution
+        --todo solve must return all requirements and function must use them to tell which are necessary
         solve :: AtomSequence -> Bool
-        solve (EndAS a) = (\x->(not.null) x && notBad (head x)) $ resolve (MakeTermAtom  a) db
+        solve (EndAS a) = (\x -> (not . null) x && notBad (head x)) $ resolve (MakeTermAtom a) db
         solve (MakeAS a as) = any (solve . applyAS as) (resolve (MakeTermAtom a) db)
 
-    --   todo still not understanding
+--   todo still not understanding
 
-buildRTree :: Database -> Term -> ResolutionTree
-buildRTree _ _ = EmptyRT
+buildRTree :: Database -> [Atom] -> QueryResult -> ResolutionTree
+buildRTree _ [] qr = LeafRT qr
+buildRTree db@(r, f) arr@(a : as) qr = NodeRT arr children
+  where
+    children = factChildren ++ ruleChildren
+    factChildren = map (\fqr -> buildRTree db (map (`apply` qr) as) (appendQR fqr qr)) (fst u)
+    ruleChildren = map (\(al, rqr) -> buildRTree db (map (`apply` rqr) (al ++ as)) (appendQR rqr qr)) (snd u)
+    u = unifiers db a
+
+unifiers :: Database -> Atom -> ([QueryResult], [([Atom], QueryResult)])
+unifiers db@(r, f) a =
+  ( filter notBad (map (\fact -> toBeUnified (factToTerm fact, MakeTermAtom a)) f),
+    filter (notBad . snd) (map (\(MakeRule ah as) -> (asToAtomArray as, toBeUnified (MakeTermAtom ah, MakeTermAtom a))) r)
+  )
 
 collectSolutions :: ResolutionTree -> [QueryResult]
 collectSolutions EmptyRT = []
-collectSolutions (LeafRT _ qr) = [qr]
+collectSolutions (LeafRT qr) = [qr]
 collectSolutions (NodeRT _ ts) = concatMap collectSolutions ts
 
 interpreteInput :: String -> Database -> [QueryResult]
 interpreteInput input db@(r, f)
-  | isFact input = resolve readyTerm db
-  --  | isFact input = collectSolutions (buildTree db readyTerm) readyTerm db
---todo develop resolution tree and use the line above 
---todo (with needed constrains about the unifiers (only those existent in readyTerm))
+  --  | isFact input = resolve readyTerm db
+  | isFact input = collectSolutions $ buildRTree db [readyAtom] (EndQR True)
+  -- todo check what variables are needed !!!!!!!!!!!
   | otherwise = [toBeUnified (toEquality input)]
   where
-    readyTerm = MakeTermAtom $ toAtom (init input)
+    readyAtom = toAtom (init input)

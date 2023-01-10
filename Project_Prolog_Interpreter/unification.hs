@@ -87,7 +87,7 @@ applyAS (MakeAS a as) qr = MakeAS (apply a qr) (applyAS as qr)
 apply :: Atom -> QueryResult -> Atom
 apply a (MakeQR (var,r) qr@(MakeQR _ _)) = apply (substituteAtom var r a) qr
 apply a (MakeQR (var,r) (EndQR _)) = substituteAtom var r a
-apply _ _ = error "query must not have been empty..."
+apply a _ = a
 substituteAtom :: Variable -> Replacement -> Atom -> Atom
 substituteAtom var r (MakeAtom idPart ts) = MakeAtom idPart (substituteTS var r ts)
 substituteTS :: Variable -> Replacement -> TermSequence -> TermSequence
@@ -102,3 +102,7 @@ substituteTerm var (ReplaceVar a) t@(MakeTermV v)
   | otherwise = t
 substituteTerm var r t@(MakeTermAtom a) = MakeTermAtom (substituteAtom var r a)
 substituteTerm _ _ t = t
+
+appendQR :: QueryResult -> QueryResult -> QueryResult
+appendQR (EndQR _) qr = qr
+appendQR (MakeQR el qr1) qr2= MakeQR el (appendQR qr1 qr2)
