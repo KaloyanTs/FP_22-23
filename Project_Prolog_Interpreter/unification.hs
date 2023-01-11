@@ -32,14 +32,8 @@ toBeUnified pair@(l, r)
       iter
         (replaceStackVar lhs rhs pairs)
         (MakeQR (lhs, ReplaceVar rhs) res)
-    --  | areIdenticalVariables lhs rhs = iter
-    --                                   (replaceStackVar lhs rhs pairs)
-    --                                   (MakeQR (lhs, ReplaceVar rhs) res)
-    --  | otherwise = EndQR False
-    -- todo consider removing this check
     iter ((MakeTermC lhs, MakeTermV rhs) : pairs) res =
       iter (replaceStackC rhs lhs pairs) (MakeQR (rhs, ReplaceId lhs) res)
-    --todo should lhs and rhs be replaced in the res??????
     iter ((MakeTermV lhs, MakeTermC rhs) : pairs) res =
       iter (replaceStackC lhs rhs pairs) (MakeQR (lhs, ReplaceId rhs) res)
     iter ((MakeTermV _, _) : pairs) _ = EndQR False

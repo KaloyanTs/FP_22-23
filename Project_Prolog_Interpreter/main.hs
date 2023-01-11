@@ -14,9 +14,8 @@ consult contents = (truth, if truth then [] else filter (\x -> not (isFact x || 
 interpreteCode :: [String] -> Database
 interpreteCode c = (rules, facts)
   where
-    noWhitespaces = map (filter (/= ' ')) c
-    rules = map toRule (filter isRule noWhitespaces)
-    facts = map toFact (filter isFact noWhitespaces)
+    rules = map toRule (filter isRule c)
+    facts = map toFact (filter isFact c)
 
 showQRs :: [QueryResult] -> IO ()
 showQRs [] = do

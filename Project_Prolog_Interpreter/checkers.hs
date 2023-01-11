@@ -11,8 +11,6 @@ isIdentifier (x : xs) =
   isAsciiLower x
     && all (\y -> isLetter y || isDigit y || y == '_') xs
 
---todo should '_' be a valid part of identifier?
-
 isVariable :: String -> Bool
 isVariable [] = False
 isVariable (x : xs) =

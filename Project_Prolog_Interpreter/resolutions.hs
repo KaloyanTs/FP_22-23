@@ -10,45 +10,6 @@ uniqueQRs :: [QueryResult] -> [QueryResult]
 uniqueQRs [] = []
 uniqueQRs (qr : qrs) = qr : filter (not . areIdenticalQR qr) qrs
 
---todo understand resolution and implement here
---todo quieries must not finish with false (at least not to be shown)
-resolve :: Term -> Database -> [QueryResult]
-resolve t db@(r, f)
-  | noVars = [EndQR ((not . null) res)]
-  | otherwise = res
-  where
-    noVars = (not . termContainsVariable) t
-    res = uniqueQRs $ factsRes ++ searchSolution rulesRes
-    factsRes = filter notBad (map (\fact -> toBeUnified (factToTerm fact, t)) f)
-    -- rules whose head can be unified with the term
-    -- the queryResult is kept for applyASing over the atomsequence
-    rulesRes =
-      filter
-        (notBad . snd)
-        ( map
-            (\rule@(MakeRule a as) -> (as, toBeUnified (MakeTermAtom a, t)))
-            r
-        )
-    --todo not working
-    searchSolution results =
-      filter notBad $
-        map
-          ( \res@(as, requirements) ->
-              if solve (applyAS as requirements)
-                then -- todo why it is empty for ivan,penka
-                  requirements
-                else EndQR False
-          )
-          results
-      where
-        --todo solve says if atom sequence has compatible solution
-        --todo solve must return all requirements and function must use them to tell which are necessary
-        solve :: AtomSequence -> Bool
-        solve (EndSequence a) = (\x -> (not . null) x && notBad (head x)) $ resolve (MakeTermAtom a) db
-        solve (MakeSequence a as) = any (solve . applyAS as) (resolve (MakeTermAtom a) db)
-
---   todo still not understanding
-
 buildRTree :: Database -> [Atom] -> QueryResult -> ResolutionTree
 buildRTree _ [] qr = LeafRT qr
 buildRTree db@(r, f) arr@(a : as) qr = NodeRT arr children
@@ -83,9 +44,7 @@ needed a qrs = filter (notBad) (map (onlyUseful vars) qrs)
 
 interpreteInput :: String -> Database -> [QueryResult]
 interpreteInput input db@(r, f)
-  --  | isFact input = resolve readyTerm db
   | isFact input = needed readyAtom $ collectSolutions $ buildRTree db [readyAtom] (EndQR True)
-  -- todo check what variables are needed !!!!!!!!!!!
   | otherwise = [toBeUnified (toEquality input)]
   where
     readyAtom = toAtom (init input)

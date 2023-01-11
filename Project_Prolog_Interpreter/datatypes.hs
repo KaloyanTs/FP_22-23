@@ -6,7 +6,7 @@ data LetterNumberSequence
 
 data Identifier = MakeId Char LetterNumberSequence
 
---todo assert first letter is capital
+-- todo assert first letter is capital
 data Variable = MakeVar Char LetterNumberSequence
 
 type Constant = Identifier

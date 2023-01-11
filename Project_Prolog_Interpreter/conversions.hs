@@ -126,34 +126,6 @@ showFacts (r, f) = map showFact f
 showRules :: Database -> [String]
 showRules (r, f) = map showRule r
 
-getFactIds :: Fact -> [Identifier]
-getFactIds (MakeAtom id ts) = id : getTSIds ts
-
-getTSIds :: TermSequence -> [Identifier]
-getTSIds (EndSequence t) = getTermIds t
-getTSIds (MakeSequence t ts) = getTermIds t ++ getTSIds ts
-
-getTermIds :: Term -> [Identifier]
-getTermIds (MakeTermC c) = [c]
-getTermIds (MakeTermV _) = []
-getTermIds (MakeTermAtom a) = getAtomIds a
-
-getAtomIds :: Atom -> [Identifier]
-getAtomIds (MakeAtom id ts) = id : getTSIds ts
-
---todo not sure whether those below are necessary
-getASIds :: AtomSequence -> [Identifier]
-getASIds (EndSequence a) = getAtomIds a
-getASIds (MakeSequence a as) = getAtomIds a ++ getASIds as
-
-getRuleIds :: Rule -> [Identifier]
-getRuleIds (MakeRule a as) = getAtomIds a ++ getASIds as
-
-allIdentifiers :: Database -> [Identifier]
-allIdentifiers (r, f) = concatMap getRuleIds r ++ concatMap getFactIds f
-
---todo not sure whether those above are necessary
-
 factToTerm :: Fact -> Term
 factToTerm f = MakeTermAtom (toAtom (init (showFact f)))
 

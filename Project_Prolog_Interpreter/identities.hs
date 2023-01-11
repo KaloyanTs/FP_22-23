@@ -3,7 +3,7 @@ where
 
 import Datatypes
 
---todo solve using fmap and classes ???
+-- todo solve using fmap and classes ???
 
 areIdenticalLNS :: LetterNumberSequence -> LetterNumberSequence -> Bool
 areIdenticalLNS EmptyLNS EmptyLNS = True
