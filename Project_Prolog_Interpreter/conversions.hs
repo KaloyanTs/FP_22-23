@@ -44,8 +44,8 @@ toTerm l
 
 toTermSequence :: [Term] -> TermSequence
 toTermSequence [] = error "term sequence has at least one term"
-toTermSequence [t] = EndTS t
-toTermSequence (x : xs) = MakeTS x (toTermSequence xs)
+toTermSequence [t] = EndSequence t
+toTermSequence (x : xs) = MakeSequence x (toTermSequence xs)
 
 toFact :: String -> Fact
 toFact s
@@ -78,15 +78,15 @@ toEquality str
 
 toAtomSequence :: [Atom] -> AtomSequence
 toAtomSequence [] = error "atom sequence consists of at least one atom"
-toAtomSequence [a] = EndAS a
-toAtomSequence (x : xs) = MakeAS x (toAtomSequence xs)
+toAtomSequence [a] = EndSequence a
+toAtomSequence (x : xs) = MakeSequence x (toAtomSequence xs)
 
 showAtom :: Atom -> String
 showAtom (MakeAtom id ts) = showIdentifier id ++ "(" ++ showTermSequence ts ++ ")"
 
 showTermSequence :: TermSequence -> String
-showTermSequence (EndTS t) = showTerm t
-showTermSequence (MakeTS t ts) = showTerm t ++ "," ++ showTermSequence ts
+showTermSequence (EndSequence t) = showTerm t
+showTermSequence (MakeSequence t ts) = showTerm t ++ "," ++ showTermSequence ts
 
 showTerm :: Term -> String
 showTerm (MakeTermC c) = showConstant c
@@ -114,8 +114,8 @@ showRule :: Rule -> String
 showRule (MakeRule a as) = showAtom a ++ " :- " ++ showAtomSequence as ++ "."
 
 showAtomSequence :: AtomSequence -> String
-showAtomSequence (EndAS a) = showAtom a
-showAtomSequence (MakeAS a as) = showAtom a ++ "," ++ showAtomSequence as
+showAtomSequence (EndSequence a) = showAtom a
+showAtomSequence (MakeSequence a as) = showAtom a ++ "," ++ showAtomSequence as
 
 showFact :: Atom -> String
 showFact a = showAtom a ++ "."
@@ -130,8 +130,8 @@ getFactIds :: Fact -> [Identifier]
 getFactIds (MakeAtom id ts) = id : getTSIds ts
 
 getTSIds :: TermSequence -> [Identifier]
-getTSIds (EndTS t) = getTermIds t
-getTSIds (MakeTS t ts) = getTermIds t ++ getTSIds ts
+getTSIds (EndSequence t) = getTermIds t
+getTSIds (MakeSequence t ts) = getTermIds t ++ getTSIds ts
 
 getTermIds :: Term -> [Identifier]
 getTermIds (MakeTermC c) = [c]
@@ -143,8 +143,8 @@ getAtomIds (MakeAtom id ts) = id : getTSIds ts
 
 --todo not sure whether those below are necessary
 getASIds :: AtomSequence -> [Identifier]
-getASIds (EndAS a) = getAtomIds a
-getASIds (MakeAS a as) = getAtomIds a ++ getASIds as
+getASIds (EndSequence a) = getAtomIds a
+getASIds (MakeSequence a as) = getAtomIds a ++ getASIds as
 
 getRuleIds :: Rule -> [Identifier]
 getRuleIds (MakeRule a as) = getAtomIds a ++ getASIds as
@@ -162,9 +162,21 @@ termToAtom (MakeTermAtom a) = a
 termToAtom _ = error "impossible conversion..."
 
 tsToTermArray :: TermSequence -> [Term]
-tsToTermArray (EndTS t) = [t]
-tsToTermArray (MakeTS t ts) = t : tsToTermArray ts
+tsToTermArray (EndSequence t) = [t]
+tsToTermArray (MakeSequence t ts) = t : tsToTermArray ts
 
 asToAtomArray :: AtomSequence -> [Atom]
-asToAtomArray (EndAS a) = [a]
-asToAtomArray (MakeAS a as) = a : asToAtomArray as
+asToAtomArray (EndSequence a) = [a]
+asToAtomArray (MakeSequence a as) = a : asToAtomArray as
+
+getVariablesAtom :: Atom -> [Variable]
+getVariablesAtom (MakeAtom _ ts) = getVariablesTS ts
+
+getVariablesTS :: TermSequence -> [Variable]
+getVariablesTS (EndSequence t) = getVariablesTerm t
+getVariablesTS (MakeSequence t ts) = getVariablesTerm t ++ getVariablesTS ts
+
+getVariablesTerm :: Term -> [Variable]
+getVariablesTerm (MakeTermC _) = []
+getVariablesTerm (MakeTermV v) = [v]
+getVariablesTerm (MakeTermAtom a) = getVariablesAtom a

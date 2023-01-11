@@ -38,8 +38,8 @@ areIdenticalTerms (MakeTermAtom c1) (MakeTermAtom c2) = areIdenticalAtoms c1 c2
 areIdenticalTerms _ _ = False
 
 areIdenticalTS :: TermSequence -> TermSequence -> Bool
-areIdenticalTS (EndTS t1) (EndTS t2) = areIdenticalTerms t1 t2
-areIdenticalTS (MakeTS t1 ts1) (MakeTS t2 ts2) =
+areIdenticalTS (EndSequence t1) (EndSequence t2) = areIdenticalTerms t1 t2
+areIdenticalTS (MakeSequence t1 ts1) (MakeSequence t2 ts2) =
   areIdenticalTerms t1 t2
     && areIdenticalTS ts1 ts2
 areIdenticalTS _ _ = False

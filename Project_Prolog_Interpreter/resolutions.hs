@@ -44,8 +44,8 @@ resolve t db@(r, f)
         --todo solve says if atom sequence has compatible solution
         --todo solve must return all requirements and function must use them to tell which are necessary
         solve :: AtomSequence -> Bool
-        solve (EndAS a) = (\x -> (not . null) x && notBad (head x)) $ resolve (MakeTermAtom a) db
-        solve (MakeAS a as) = any (solve . applyAS as) (resolve (MakeTermAtom a) db)
+        solve (EndSequence a) = (\x -> (not . null) x && notBad (head x)) $ resolve (MakeTermAtom a) db
+        solve (MakeSequence a as) = any (solve . applyAS as) (resolve (MakeTermAtom a) db)
 
 --   todo still not understanding
 
@@ -69,10 +69,22 @@ collectSolutions EmptyRT = []
 collectSolutions (LeafRT qr) = [qr]
 collectSolutions (NodeRT _ ts) = concatMap collectSolutions ts
 
+needed :: Atom -> [QueryResult] -> [QueryResult]
+needed a qrs = filter (notBad) (map (onlyUseful vars) qrs)
+  where
+    vars = getVariablesAtom a
+    onlyUseful :: [Variable] -> QueryResult -> QueryResult
+    -- onlyUseful _ qr = qr
+    onlyUseful [] _ = EndQR True
+    onlyUseful arr (EndQR b) = EndQR b
+    onlyUseful arr (MakeQR qr@(var, _) qrs)
+      | any (areIdenticalVariables var) arr = MakeQR qr (onlyUseful (filter (not . areIdenticalVariables var) arr) qrs)
+      | otherwise = onlyUseful (filter (not . areIdenticalVariables var) arr) qrs
+
 interpreteInput :: String -> Database -> [QueryResult]
 interpreteInput input db@(r, f)
   --  | isFact input = resolve readyTerm db
-  | isFact input = collectSolutions $ buildRTree db [readyAtom] (EndQR True)
+  | isFact input = needed readyAtom $ collectSolutions $ buildRTree db [readyAtom] (EndQR True)
   -- todo check what variables are needed !!!!!!!!!!!
   | otherwise = [toBeUnified (toEquality input)]
   where

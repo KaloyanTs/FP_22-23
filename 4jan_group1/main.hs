@@ -67,13 +67,14 @@ type BST = BinTree
 bstInsert :: Ord a => a -> BST a -> BST a
 bstInsert el EmptyBT = BT el EmptyBT EmptyBT
 bstInsert el (BT root left right)
-    | el <= root = BT root (bstInsert el left) right
-    | otherwise = BT root left (bstInsert el right)
+    | el < root = BT root (bstInsert el left) right
+    | el > root = BT root left (bstInsert el right)
+    | otherwise = BT el left right
 
-bstSearch :: Ord a => a -> BST a -> Bool
-bstSearch _ EmptyBT = False
+bstSearch :: Ord a => a -> BST a -> Maybe a
+bstSearch _ EmptyBT = Nothing
 bstSearch el (BT root left right)
-    | root == el = True
+    | root == el = Just root
     | root>el = bstSearch el left
     | otherwise = bstSearch el right
 
@@ -97,7 +98,21 @@ instance Eq a => Eq (Pair a b) where
 instance Ord a => Ord (Pair a b) where
     (<=) (Pair f1 s1) (Pair f2 s2) = f1<=f2
 
-type Map a b = BinTree (Pair a b)
+type Map a b = BST (Pair a b)
 
--- mapInsert :: (Ord a) => k -> v -> Map a b -> Map a b
--- mapInsert EmptyBT = 
+mapInsert :: (Ord a) => a -> [b] -> Map a b -> Map a b
+mapInsert key value = bstInsert (Pair key value)
+
+mapSearch :: Ord k => k -> Map k v -> Maybe [v]
+mapSearch key m = pairSND <$> bstSearch (Pair key []) m
+    where 
+        pairSND (Pair _ b) = b
+
+-- todo not working
+-- instance Functor (Map k) where
+--     fmap f EmptyBT = EmptyBT
+--     fmap f (BT (Pair key val) left right) = BT (Pair a (f val)) (fmap f left) (fmap f right)
+
+
+    -- todo map should be constructed as:
+        -- todo Node key value left right

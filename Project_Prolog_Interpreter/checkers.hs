@@ -91,18 +91,18 @@ atomContainsVariable :: Atom -> Bool
 atomContainsVariable (MakeAtom _ ts) = tsContainsVariable ts
 
 tsContainsVariable :: TermSequence -> Bool
-tsContainsVariable (EndTS t) = termContainsVariable t
-tsContainsVariable (MakeTS t ts) =
+tsContainsVariable (EndSequence t) = termContainsVariable t
+tsContainsVariable (MakeSequence t ts) =
   termContainsVariable t
     || tsContainsVariable ts
 
 anyAS :: (Atom->Bool) -> AtomSequence -> Bool
-anyAS p (EndAS a) = p a
-anyAS p (MakeAS a as) = p a || anyAS p as
+anyAS p (EndSequence a) = p a
+anyAS p (MakeSequence a as) = p a || anyAS p as
 
 allAS :: (Atom->Bool) -> AtomSequence -> Bool
-allAS p (EndAS a) = p a
-allAS p (MakeAS a as) = p a && allAS p as
+allAS p (EndSequence a) = p a
+allAS p (MakeSequence a as) = p a && allAS p as
 
 good :: QueryResult -> Bool
 good (EndQR True) = True
@@ -114,6 +114,10 @@ bad _ = False
 
 notBad :: QueryResult -> Bool
 notBad = not.bad
+
+emptyQR :: QueryResult -> Bool
+emptyQR (EndQR _) = True
+emptyQR _ = False
 
 areIdenticalQR :: QueryResult -> QueryResult -> Bool
 areIdenticalQR (EndQR a) (EndQR b) = a==b

@@ -11,9 +11,16 @@ data Variable = MakeVar Char LetterNumberSequence
 
 type Constant = Identifier
 
-data TermSequence
-  = EndTS Term
-  | MakeTS Term TermSequence
+type TermSequence = Sequence Term
+type AtomSequence = Sequence Atom
+
+data Sequence a
+  = EndSequence a
+  | MakeSequence a (Sequence a)
+
+instance Functor Sequence where
+  fmap f (EndSequence end) = EndSequence (f end)
+  fmap f (MakeSequence el seq) = MakeSequence (f el) (fmap f seq)
 
 data Term
   = MakeTermC Constant
@@ -23,10 +30,6 @@ data Term
 data Atom = MakeAtom Identifier TermSequence
 
 type Fact = Atom
-
-data AtomSequence
-  = EndAS Atom
-  | MakeAS Atom AtomSequence
 
 data Rule = MakeRule Atom AtomSequence
 
