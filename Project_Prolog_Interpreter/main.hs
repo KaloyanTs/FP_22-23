@@ -1,15 +1,10 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
-{-# HLINT ignore "Use when" #-}
-{-# HLINT ignore "Use bimap" #-}
-
 import Checkers
 import Conversions
 import Datatypes
 import Identities
+import Resolutions
 import Tools
 import Unification
-import Resolutions
 
 consult :: String -> (Bool, [String])
 consult contents = (truth, if truth then [] else filter (\x -> not (isFact x || isRule x || isComment x)) (extractData contents))
@@ -19,20 +14,21 @@ consult contents = (truth, if truth then [] else filter (\x -> not (isFact x || 
 interpreteCode :: [String] -> Database
 interpreteCode c = (rules, facts)
   where
-    rules = map toRule (filter isRule c)
-    facts = map toFact (filter isFact c)
+    noWhitespaces = map (filter (/= ' ')) c
+    rules = map toRule (filter isRule noWhitespaces)
+    facts = map toFact (filter isFact noWhitespaces)
 
 showQRs :: [QueryResult] -> IO ()
 showQRs [] = do
-    putStrLn "false."
+  putStrLn "false."
 showQRs [qr] = do
-    showQR qr
-showQRs (x@(EndQR _):xs) = do
+  showQR qr
+showQRs (x@(EndQR _) : xs) = do
   showQR x
 showQRs (x : xs) = do
   showQR x
   response <- getLine
-  if (not.null) response
+  if (not . null) response
     then return ()
     else showQRs xs
 

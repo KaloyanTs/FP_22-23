@@ -1,13 +1,10 @@
 % recursion
-factorial(1,1).    % base case: 1! = 1
-%                         N1 = N-1         (N-1)!        N * (N-1)!
+factorial(1,1).
 factorial(N,F) :- N > 1, N1 is N - 1, factorial(N1, F1), F is N * F1.
-
-% recursive definition of numbers
-num(0).                   % 0 is a number
-num(succ(N)) :- num(N).   % The successor of a number is a number
-add(0, X, X).             % Adding 0 to a number gives the number
-add(X, 0, X).             % Adding 0 to a number gives the number
+num(0).
+num(succ(N)) :- num(N).
+add(0, X, X).
+add(X, 0, X).
 add(succ(X), Y, succ(Z)) :- add(X, Y, Z).
 add(X, succ(Y), succ(Z)) :- add(X, Y, Z).
 
