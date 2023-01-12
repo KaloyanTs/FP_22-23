@@ -89,7 +89,6 @@ loop = do
 
 -- todo handle error on file reading
 -- todo childof(X,Y) doesn't finish
--- todo check syntax rules for whitespaces
 
 main :: IO ()
 main = do

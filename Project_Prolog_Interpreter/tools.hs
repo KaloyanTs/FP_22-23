@@ -26,7 +26,7 @@ removeEmpty :: [String] -> [String]
 removeEmpty = filter (not . null)
 
 extractData :: String -> [String]
-extractData l = removeEmpty (splitBy '\n' l)
+extractData l = map (filter (/= ' ')) $ removeEmpty (splitBy '\n' l)
 
 removeWhiteSpacesAfterComma :: String -> String
 removeWhiteSpacesAfterComma [] = []
