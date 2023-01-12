@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use when" #-}
 import Checkers
 import Conversions
 import Datatypes
@@ -84,6 +86,9 @@ loop = do
   putStr "Consult another file? ( y | [n] )\n> "
   response <- getLine
   if (not . null) response && head response == 'y' then loop else return ()
+
+-- todo handle error on file reading
+-- todo childof(X,Y) doesn't finish
 
 main :: IO ()
 main = do
