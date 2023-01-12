@@ -12,7 +12,7 @@ uniqueQRs (qr : qrs) = qr : filter (not . areIdenticalQR qr) qrs
 
 buildRTree :: Database -> [Atom] -> QueryResult -> ResolutionTree
 buildRTree _ [] qr = LeafRT qr
-buildRTree db@(r, f) arr@(a : as) qr = NodeRT arr children
+buildRTree db@(r, f) arr@(a : as) qr = NodeRT children
   where
     children = factChildren ++ ruleChildren
     factChildren = map (\fqr -> buildRTree db (map (`apply` qr) as) (appendQR fqr qr)) (fst u)
@@ -28,10 +28,10 @@ unifiers db@(r, f) a =
 collectSolutions :: ResolutionTree -> [QueryResult]
 collectSolutions EmptyRT = []
 collectSolutions (LeafRT qr) = [qr]
-collectSolutions (NodeRT _ ts) = concatMap collectSolutions ts
+collectSolutions (NodeRT ts) = concatMap collectSolutions ts
 
 needed :: Atom -> [QueryResult] -> [QueryResult]
-needed a qrs = filter (notBad) (map (onlyUseful vars) qrs)
+needed a qrs = filter notBad (map (onlyUseful vars) qrs)
   where
     vars = getVariablesAtom a
     onlyUseful :: [Variable] -> QueryResult -> QueryResult

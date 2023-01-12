@@ -45,5 +45,5 @@ data Replacement
 
 data ResolutionTree
   = EmptyRT
-  | NodeRT [Atom] [ResolutionTree]
+  | NodeRT [ResolutionTree]
   | LeafRT QueryResult
