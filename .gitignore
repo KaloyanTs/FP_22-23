@@ -5,4 +5,5 @@
 !*.scm
 !*.hs
 !*.pl
+!*.tex
 requirements.pdf
