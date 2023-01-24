@@ -57,7 +57,7 @@ getRefund agency customerName destinationName
         goodExcursion = filter (\t -> destination t == destinationName) (excursions customer)
         excursion = head goodExcursion
         calc :: Trip -> Double
-        calc t = (k*c*(price t)) - fee
+        calc t = (k*c*price t) - fee
             where
                 k = fromIntegral (length (filter (\trip -> tripStatus trip /= Canceled) (excursions customer))) / fromIntegral (length (excursions customer))
                 c = case policy excursion of
@@ -68,8 +68,8 @@ getRefund agency customerName destinationName
                 quotient = fromIntegral (length haveCanceled) / fromIntegral (length allInTrip)
                 canceledAvg =sum canceled / fromIntegral (length canceled)
                 canceled = [price t | t<-excursions customer,tripStatus t == Canceled]
-                haveCanceled = filter (\c -> any (\t -> (destination t == destinationName && tripStatus t == Canceled)) (excursions c)) agency
-                allInTrip = filter (\c -> any (\t -> destination t == destinationName) (excursions c)) agency
+                haveCanceled = filter (any (\t -> destination t == destinationName && tripStatus t == Canceled) . excursions) agency
+                allInTrip = filter (any (\t -> destination t == destinationName) . excursions) agency
                     
 
 match = Activity "match" 30                                                
