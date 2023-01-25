@@ -67,7 +67,7 @@ getRefund agency customerName destinationName
           Flexible -> 0.7
           Moderate -> 0.4
           Strict -> 0.1
-        fee = quotient * (if null canceled then 0 else canceledAvg)
+        fee = quotient * (if null canceled then 1 else canceledAvg)
         quotient = fromIntegral (length haveCanceled) / fromIntegral (length allInTrip)
         canceledAvg = sum canceled / fromIntegral (length canceled)
         canceled = [price t | t <- excursions customer, tripStatus t == Canceled]
