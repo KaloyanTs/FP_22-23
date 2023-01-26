@@ -88,13 +88,17 @@ london = Trip "London" 750 InProgress [museums, match, eating] Strict
 
 madrid = Trip "Madrid" 1500 Upcoming [match, match, match, eating] Moderate
 
+budapest = Trip "Budapest" 834 Upcoming [eating, shopping, museums] Flexible
+
+newYork = Trip "New York" 2345 Canceled [shopping, eating, eating, eating] Moderate
+
 sofia = Trip "Sofia" 200 InProgress [shopping, museums, shopping, match] Flexible
 
-az = Customer "Kaloyan" [madrid, sofia] 100
+az = Customer "Kaloyan" [madrid, sofia, budapest] 100
 
-ti = Customer "Dani" [london, paris, sofia] 78
+ti = Customer "Dani" [london, paris, sofia, newYork,budapest] 78
 
-toi = Customer "Vladi" [sofia, madrid] 132
+toi = Customer "Vladi" [sofia, budapest, madrid, newYork] 132
 
 agency = [az, ti, toi]
 
@@ -110,3 +114,7 @@ main = do
   print $ getRefund agency "Kaloyan" "madrid"
   putStr "Refund for Kaloyan for Sofia: "
   print $ getRefund agency "Kaloyan" "Sofia"
+  putStr "Refund for Kaloyan for Budapest: "
+  print $ getRefund agency "Kaloyan" "Budapest"
+  putStr "Refund for Vladi for Madrid: "
+  print $ getRefund agency "Vladi" "Madrid"
