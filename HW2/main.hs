@@ -5,12 +5,10 @@ data Status
   | Finished
   deriving (Eq)
 
---              destination price status [entertainment]
 data Trip = Trip {destination :: String, price :: Double, tripStatus :: Status, entertainments :: [Activity], policy :: CancelationPolicy}
 
 data Activity = Activity {nameActivity :: String, duration :: Int}
 
---                      name            points
 data Customer = Customer {nameCustomer :: String, excursions :: [Trip], points :: Int}
 
 type Agency = [Customer]
