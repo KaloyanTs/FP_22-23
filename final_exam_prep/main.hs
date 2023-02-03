@@ -235,8 +235,48 @@ videoName (n, _) = n
 videoLength :: Video -> Int
 videoLength (_, l) = l
 
--- averageVideo :: [Video] -> String
+averageVideo :: [Video] -> String
 averageVideo l = videoName $ foldr1 (\v1 v2 -> if videoLength v1 > videoLength v2 then v1 else v2) $ filter ((<= avg) . videoLength) l
   where
     lengths = map videoLength l
     avg = sum lengths `div` length lengths
+
+generateExponents k t = filter ok [1 ..]
+  where
+    ok n = any kt [(x, y) | x <- [1 .. n], y <- [1 .. n]]
+      where
+        kt (x, y) = n == (x ^ k) * (y ^ t)
+
+sameAsCode :: Tree Int -> Int
+sameAsCode t = iter t 1
+  where
+    iter Empty _ = 0
+    iter (Tnode val l r) code
+      | val == code = val
+      | resL /= 0 = resL
+      | otherwise = resR
+      where
+        resL = iter l (2 * code)
+        resR = iter r (2 * code + 1)
+
+allEqual :: Eq a1 => [[a2]] -> [a2 -> a1] -> [a2]
+allEqual ls fs
+  | null good = []
+  | otherwise = map (fst . head . dropWhile (\(a, r) -> r /= snd res)) applied
+  where
+    applied = zipWith (\l f -> zip l (map f l)) ls fs
+    good = filter (\(arg, res) -> all (any (\(arg2, res2) -> res == res2)) applied) $ head applied
+    res = head good
+
+segments :: [Int] -> [[Int]]
+segments l = (:) dec $ segments $ drop (length dec) l
+  where
+    longestDecresing [] = []
+    longestDecresing [x] = [x]
+    longestDecresing (x : y : xs)
+      | x > y = x : longestDecresing (y : xs)
+      | otherwise = [x]
+    dec = longestDecresing l
+
+fillSegments :: [Int] -> [Int]
+fillSegments l = concatMap (\r -> if head r == 0 then [0] else [head r, (head r) - 1 .. 0]) $ segments l
