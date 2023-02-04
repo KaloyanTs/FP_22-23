@@ -296,6 +296,19 @@ spike house spPos tom tPos = head $ filter (\p -> last p == tomPos (length p)) $
         next = tom $ prev
         prev = tomPos $ (n - 1)
 
+spikeUnpredictable :: Graph -> Int -> (Int -> [Int]) -> Int -> [Int]
+spikeUnpredictable house spPos tom tPos = head $ filter (\p -> all (`elem` p) [1 .. (length p)]) $ filter (\p -> head p == spPos) paths
+  where
+    paths = concatMap allPaths [1 ..]
+    allPaths 1 = map (: []) ver
+    allPaths n = concatMap (\path -> map (: path) (head path : children house (head path))) (allPaths (n - 1))
+    ver = map fst house
+    tomPos 1 = [tPos]
+    tomPos n = filter (`elem` ver) $ concatMap ((\(from, l) -> if any (`notElem` ver) l then from : l else l) . (\p -> (p, tom p))) prev
+      where
+        prev = tomPos $ (n - 1)
+
+-- todo
 wordle :: [(String, String)] -> String
 wordle attempts
   | null correct = "no solution"
@@ -314,3 +327,38 @@ wordle attempts
       | r == '?' = c /= t && elem t w && matches cs (ts, rs) w
       | otherwise = False
     matches _ _ _ = False
+
+wordleImproved :: [(String, String)] -> String
+wordleImproved attempts
+  | null correct = "no solution"
+  | null (tail correct) = head correct
+  | otherwise = fst $ foldr1 better $ map worstCase $ correct
+  where
+    l = length $ fst $ head attempts
+    hints = allHints l
+    correct = c attempts
+    c att = filter (`ok` att) $ allStrings (length $ fst $ head att)
+    allStrings 0 = [[]]
+    allStrings n = concatMap (\c -> map (c :) (allStrings (n - 1))) ['a' .. 'z']
+    ok word = all (\att -> matches word att word)
+    matches [] _ _ = True
+    matches word@(c : cs) (t : ts, r : rs) w
+      | r == '+' = c == t && matches cs (ts, rs) w
+      | r == '-' = notElem t w && matches cs (ts, rs) w
+      | r == '?' = c /= t && elem t w && matches cs (ts, rs) w
+      | otherwise = False
+    matches _ _ _ = False
+    allHints 0 = [[]]
+    allHints n = concatMap (\c -> map (c :) (allHints (n - 1))) ['?', '-', '+']
+    worstCase s = (s, maximum $ map (\att -> length $ c ((s, att) : attempts)) $ hints)
+    better :: (String, Int) -> (String, Int) -> (String, Int)
+    better x@(w1, res1) y@(w2, res2)
+      | res1 == 0 = y
+      | res2 == 0 = x
+      | res1 > res2 = y
+      | otherwise = x
+    worse x@(w1, res1) y@(w2, res2)
+      | res1 > res2 = x
+      | otherwise = y
+
+-- todo
