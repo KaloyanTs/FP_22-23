@@ -279,4 +279,38 @@ segments l = (:) dec $ segments $ drop (length dec) l
     dec = longestDecresing l
 
 fillSegments :: [Int] -> [Int]
-fillSegments l = concatMap (\r -> if head r == 0 then [0] else [head r, (head r) - 1 .. 0]) $ segments l
+fillSegments l = concatMap (\r -> if head r == 0 then [0] else [head r, head r - 1 .. 0]) $ segments l
+
+spike :: Graph -> Int -> (Int -> Int) -> Int -> [Int]
+spike house spPos tom tPos = head $ filter (\p -> last p == tomPos (length p)) $ filter (\p -> head p == spPos) paths
+  where
+    paths = concatMap allPaths [1 ..]
+    allPaths 1 = map (: []) ver
+    allPaths n = concatMap (\path -> map (: path) (head path : children house (head path))) (allPaths (n - 1))
+    ver = map fst house
+    tomPos 1 = tPos
+    tomPos n
+      | next `elem` ver = next
+      | otherwise = prev
+      where
+        next = tom $ prev
+        prev = tomPos $ (n - 1)
+
+wordle :: [(String, String)] -> String
+wordle attempts
+  | null correct = "no solution"
+  | null (tail correct) = head correct
+  | otherwise = "many solutions"
+  where
+    correct = c attempts
+    c att = filter ok $ allStrings (length $ fst $ head att)
+    allStrings 0 = [[]]
+    allStrings n = concatMap (\c -> map (c :) (allStrings (n - 1))) ['a' .. 'z']
+    ok word = all (\att -> matches word att word) attempts
+    matches [] _ _ = True
+    matches word@(c : cs) (t : ts, r : rs) w
+      | r == '+' = c == t && matches cs (ts, rs) w
+      | r == '-' = notElem t w && matches cs (ts, rs) w
+      | r == '?' = c /= t && elem t w && matches cs (ts, rs) w
+      | otherwise = False
+    matches _ _ _ = False
