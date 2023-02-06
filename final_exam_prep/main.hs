@@ -361,4 +361,65 @@ wordleImproved attempts
       | res1 > res2 = x
       | otherwise = y
 
+data Database = DB {dbName :: String, dbSize :: Int} deriving (Show)
+
+data Server = S {sName :: String, sCap :: Int, dbs :: [Database]}
+  deriving (Show)
+
+maxFree :: [Server] -> String
+maxFree [] = error "no servers given"
+maxFree l = sName $ foldr1 (\x y -> if free x > free y then x else y) l
+
+free :: Server -> Int
+free s = sCap s - sum (map dbSize $ dbs s)
+
+sort :: (a -> a -> Bool) -> [a] -> [a]
+sort _ [] = []
+sort less (x : xs) = qsort less (filter (`less` x) xs) ++ [x] ++ qsort less (filter (not . (`less` x)) xs)
+
+tryRemove :: [Server] -> String -> [Server]
+tryRemove l n
+  | possible = zipWith (\db s -> S (sName s) (sCap s) (db : dbs s)) (dbs theServer) restServers
+  | otherwise = l
+  where
+    sortServer s = S (sName s) (sCap s) (sort (\x y -> dbSize x > dbSize y) (dbs s))
+    sorted = sort (\x y -> free x > free y) (map sortServer l)
+    theServer = head $ filter (\x -> sName x == n) sorted
+    restServers = filter (\x -> sName x /= n) sorted
+    possible = length (dbs theServer) <= length restServers && all (\(db, s) -> free s >= dbSize db) (zip (dbs theServer) restServers)
+    mainPart :: [Database] -> [[Database]] -> [[Database]]
+    mainPart _ res = res
+
 -- todo
+
+s1 = S "server1" 100 [DB "a" 5, DB "f" 45, DB "r" 32]
+
+s2 = S "server2" 138 [DB "ab" 5, DB "re" 32]
+
+s3 = S "server3" 59 [DB "areg" 5, DB "f" 13, DB "rger" 3]
+
+s4 = S "server4" 65 [DB "avx" 5, DB "fdsf" 23, DB "r" 32]
+
+l = [s1, s2, s3, s4]
+
+comps fl = concatMap allComps [0 ..]
+  where
+    allComps 0 = [id]
+    allComps n = concatMap (\f -> map (f .) prev) fl
+      where
+        prev = allComps (n - 1)
+
+data T a
+  = E
+  | N a [T a]
+  deriving (Show)
+
+-- minPredecessor :: T Int -> Int -> Int
+minPredecessor E _ = error "no such element in empty tree"
+minPredecessor tree@(N v children) x
+  | v == x || count children > 1 = v
+  | otherwise = minPredecessor (head $ filter exists children) x
+  where
+    exists E = False
+    exists (N val l) = val == x || any exists l
+    count l = length $ filter (== True) $ map exists l
