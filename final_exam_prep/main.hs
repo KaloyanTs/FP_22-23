@@ -1,5 +1,6 @@
 -- generatePowers 2 3 → [1, 2, 3, 4, 6, 8, 9, ... ]
 
+generatePowers :: Int -> Int -> [Int]
 generatePowers k t = filter ok [1 ..]
   where
     ok x = (repeatedDiv t . repeatedDiv k) x == 1
@@ -19,6 +20,7 @@ countCodes t = iter t 1
     iter EmptyBT _ = 0
     iter (Node a left right) code = (if a == code then 1 else 0) + iter left (2 * code) + iter right (2 * code + 1)
 
+racaman :: [Int]
 racaman = 0 : map determine [1 ..]
   where
     determine n
@@ -29,7 +31,7 @@ racaman = 0 : map determine [1 ..]
         past = take n racaman
 
 checkId :: (Num a, Eq a) => [a -> a] -> [a] -> Bool
-checkId fs xs = any (\(f, g) -> all (\x -> f (g (x)) == x) xs) [(f, g) | f <- fs, g <- fs]
+checkId fs xs = any (\(f, g) -> all (\x -> f (g x) == x) xs) [(f, g) | f <- fs, g <- fs]
 
 type Team = String
 
@@ -101,7 +103,7 @@ findMiddle l = if null res then head l else snd $ head res
 
 type Food = (String, Int)
 
--- discountFood :: [Food] -> String
+discountFood :: [Food] -> String
 discountFood l = fst $ head $ filter (\(n, d) -> d == res) l
   where
     res = minimum $ filter (> 0) $ map snd l
@@ -140,6 +142,7 @@ selectionSort l = replicate (length (filter (== m) l)) m ++ selectionSort (filte
 
 type Graph = [(Int, [Int])]
 
+children :: Graph -> Int -> [Int]
 children g v = if null res then [] else res
   where
     res = snd $ head $ filter ((== v) . fst) g
@@ -176,6 +179,7 @@ name (n, _, _) = n
 minT :: Plant -> Int
 minT (_, m, _) = m
 
+maxT :: Plant -> Int
 maxT (_, _, m) = m
 
 garden :: [Plant] -> ((Int, Int), [String])
@@ -293,8 +297,8 @@ spike house spPos tom tPos = head $ filter (\p -> last p == tomPos (length p)) $
       | next `elem` ver = next
       | otherwise = prev
       where
-        next = tom $ prev
-        prev = tomPos $ (n - 1)
+        next = tom prev
+        prev = tomPos (n - 1)
 
 spikeUnpredictable :: Graph -> Int -> (Int -> [Int]) -> Int -> [Int]
 spikeUnpredictable house spPos tom tPos = head $ filter (\p -> all (`elem` p) [1 .. (length p)]) $ filter (\p -> head p == spPos) paths
@@ -306,7 +310,7 @@ spikeUnpredictable house spPos tom tPos = head $ filter (\p -> all (`elem` p) [1
     tomPos 1 = [tPos]
     tomPos n = filter (`elem` ver) $ concatMap ((\(from, l) -> if any (`notElem` ver) l then from : l else l) . (\p -> (p, tom p))) prev
       where
-        prev = tomPos $ (n - 1)
+        prev = tomPos (n - 1)
 
 -- todo
 wordle :: [(String, String)] -> String
@@ -332,7 +336,7 @@ wordleImproved :: [(String, String)] -> String
 wordleImproved attempts
   | null correct = "no solution"
   | null (tail correct) = head correct
-  | otherwise = fst $ foldr1 better $ map worstCase $ correct
+  | otherwise = fst $ foldr1 better $ map worstCase correct
   where
     l = length $ fst $ head attempts
     hints = allHints l
@@ -402,6 +406,7 @@ s4 = S "server4" 65 [DB "avx" 5, DB "fdsf" 23, DB "r" 32]
 
 l = [s1, s2, s3, s4]
 
+comps :: Foldable t => t (a -> a) -> [a -> a]
 comps fl = concatMap allComps [0 ..]
   where
     allComps 0 = [id]
@@ -414,7 +419,7 @@ data T a
   | N a [T a]
   deriving (Show)
 
--- minPredecessor :: T Int -> Int -> Int
+minPredecessor :: Eq t => T t -> t -> t
 minPredecessor E _ = error "no such element in empty tree"
 minPredecessor tree@(N v children) x
   | v == x || count children > 1 = v
